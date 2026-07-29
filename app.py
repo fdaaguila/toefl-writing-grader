@@ -1,3 +1,168 @@
+import streamlit as st
+from groq import Groq
+
+# ---------------------------------------------------------
+# PAGE CONFIGURATION
+# ---------------------------------------------------------
+
+st.set_page_config(
+    page_title="TOEFL Writing AI Grader",
+    page_icon="📝",
+    layout="centered"
+)
+
+# ---------------------------------------------------------
+# CONNECT TO GROQ
+# ---------------------------------------------------------
+
+try:
+    api_key = st.secrets["GROQ_API_KEY"]
+    client = Groq(api_key=api_key)
+except Exception:
+    st.error(
+        "The Groq API key could not be found. "
+        "Please check your Streamlit Secrets."
+    )
+    st.stop()
+
+# ---------------------------------------------------------
+# TITLE
+# ---------------------------------------------------------
+
+st.title("📝 TOEFL Writing AI Grader")
+
+st.write(
+    "Practice your TOEFL Writing skills and receive "
+    "AI-powered feedback based on TOEFL scoring criteria."
+)
+
+st.info(
+    "This tool provides an AI-estimated practice score. "
+    "It is not an official ETS score."
+)
+
+# ---------------------------------------------------------
+# TASK SELECTION
+# ---------------------------------------------------------
+
+task_type = st.selectbox(
+    "Choose your TOEFL Writing task:",
+    [
+        "Write an Email",
+        "Write for an Academic Discussion"
+    ]
+)
+
+# ---------------------------------------------------------
+# TASK PROMPT
+# ---------------------------------------------------------
+
+st.subheader("TOEFL Task")
+
+task_prompt = st.text_area(
+    "Paste the TOEFL task or prompt here:",
+    height=200,
+    placeholder="Paste the complete TOEFL task here..."
+)
+
+# ---------------------------------------------------------
+# STUDENT RESPONSE
+# ---------------------------------------------------------
+
+st.subheader("Your Response")
+
+student_response = st.text_area(
+    "Paste your TOEFL writing response here:",
+    height=300,
+    placeholder="Paste your writing response here..."
+)
+
+# ---------------------------------------------------------
+# EVALUATION FUNCTION
+# ---------------------------------------------------------
+
+def evaluate_writing(task_type, task_prompt, student_response):
+
+    if task_type == "Write for an Academic Discussion":
+
+        rubric = """
+Evaluate the response using the TOEFL iBT Writing for an Academic
+Discussion scoring scale from 0 to 5.
+
+Score 5:
+The response is highly effective. It clearly contributes to the
+discussion, expresses ideas clearly, and provides relevant and
+well-developed explanations or examples. Language use is appropriate
+and generally accurate, with a good range of vocabulary and grammar.
+Minor errors may occur but do not affect communication.
+
+Score 4:
+The response is effective and relevant. It clearly expresses a
+position and contributes meaningfully to the discussion. Ideas are
+adequately developed and supported. There may be some errors or
+limitations in language use, but they generally do not interfere
+with communication.
+
+Score 3:
+The response is generally relevant and understandable but may be
+limited in development, explanation, or support. The contribution
+to the discussion may be somewhat basic or incomplete. Language
+errors, limited vocabulary, or sentence structure problems may
+sometimes affect clarity, but the main meaning is generally
+understandable.
+
+Score 2:
+The response shows limited ability to contribute to the discussion.
+Ideas may be unclear, insufficiently developed, repetitive, or only
+partially relevant. Language errors and limited language control
+may make the response difficult to understand in places.
+
+Score 1:
+The response provides very little relevant content or does not
+meaningfully contribute to the discussion. Ideas are severely
+limited or unclear, and frequent language problems significantly
+interfere with communication.
+
+Score 0:
+The response is blank, copied from the prompt, completely irrelevant,
+not written in English, or does not provide a meaningful response.
+"""
+
+    else:
+
+        rubric = """
+Evaluate the response as a TOEFL iBT Writing "Write an Email" task.
+
+Consider the following areas as part of the overall evaluation:
+
+- Does the writer successfully accomplish the purpose of the email?
+- Does the writer address the required points in the task?
+- How effectively does the writer fulfill each required point?
+- Is the message clear, relevant, and appropriately developed?
+- Is the organization appropriate for an email?
+- Is the tone appropriate for the intended recipient and situation?
+- Is the language generally accurate and effective?
+- Does the writer use appropriate vocabulary and sentence structures?
+- How well does the writer control grammar and language?
+- Do language problems affect clarity or overall effectiveness?
+
+Give an estimated overall score from 0 to 5.
+
+Do not give separate numerical scores for grammar, vocabulary,
+organization, or task achievement.
+
+Completing all required points is necessary for a strong response,
+but task completion alone does not automatically qualify a response
+for a high score.
+
+A response may address every required point and still receive a
+lower score if its language control, development, clarity,
+organization, or overall effectiveness is limited.
+
+Conversely, do not lower a score simply because the student could
+have added optional information that the task does not require.
+"""
+
     evaluation_prompt = f"""
 You are an experienced TOEFL Writing teacher and evaluator.
 
@@ -103,7 +268,7 @@ Instead, consider:
 - Are the ideas sufficiently developed for THIS particular task?
 - How accurate and controlled is the language?
 - How easy is the response to understand?
-- How effective is the organization?
+- Is the organization effective?
 - Is the tone appropriate when the task requires a particular tone?
 
 
@@ -283,7 +448,7 @@ control significantly reduce its effectiveness.
 
 
 =========================================================
-7. IMPORTANT: DO NOT CONFUSE STYLE WITH ERROR
+7. DO NOT CONFUSE STYLE WITH ERROR
 =========================================================
 
 This is extremely important.
@@ -428,8 +593,8 @@ If there are no meaningful language problems, say:
 
 If there are one or two meaningful problems, identify only those.
 
-If there are several meaningful problems, identify the most important
-ones that would help the student improve.
+If there are several meaningful problems, identify the important ones
+that would help the student improve.
 
 Do not invent corrections.
 
@@ -664,3 +829,81 @@ Do not add new arguments or unnecessary details.
 Keep the entire evaluation concise, specific, accurate, consistent
 with the assigned score, and student-friendly.
 """
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a careful and fair TOEFL Writing evaluator. "
+                    "Your priority is accurate scoring and useful teaching "
+                    "feedback, not rewriting. "
+                    "Never confuse stylistic preferences with language errors. "
+                    "Never invent weaknesses, errors, or missing task requirements. "
+                    "Always evaluate the student's actual response against "
+                    "the specific task prompt and the provided scoring guidelines."
+                )
+            },
+            {
+                "role": "user",
+                "content": evaluation_prompt
+            }
+        ],
+        temperature=0.1,
+        max_tokens=2200
+    )
+
+    return response.choices[0].message.content
+
+
+# ---------------------------------------------------------
+# EVALUATE BUTTON
+# ---------------------------------------------------------
+
+if st.button("🔍 Evaluate My Writing", type="primary"):
+
+    if not task_prompt.strip():
+
+        st.warning(
+            "Please enter the TOEFL task or prompt."
+        )
+
+    elif not student_response.strip():
+
+        st.warning(
+            "Please enter your writing response."
+        )
+
+    else:
+
+        with st.spinner(
+            "Evaluating your writing..."
+        ):
+
+            try:
+
+                evaluation = evaluate_writing(
+                    task_type,
+                    task_prompt,
+                    student_response
+                )
+
+                st.success(
+                    "Evaluation complete!"
+                )
+
+                st.markdown(
+                    evaluation
+                )
+
+            except Exception as e:
+
+                st.error(
+                    "Something went wrong while evaluating "
+                    "your response."
+                )
+
+                st.code(
+                    str(e)
+                )
