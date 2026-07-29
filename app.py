@@ -32,8 +32,8 @@ except Exception:
 st.title("📝 TOEFL Writing AI Grader")
 
 st.write(
-    "Practice your TOEFL Writing skills and receive AI-powered "
-    "feedback based on TOEFL scoring criteria."
+    "Practice your TOEFL Writing skills and receive "
+    "AI-powered feedback based on TOEFL scoring criteria."
 )
 
 st.info(
@@ -78,15 +78,81 @@ student_response = st.text_area(
 )
 
 # ---------------------------------------------------------
-# EVALUATION FUNCTION
+# EVALUATION PROMPT
 # ---------------------------------------------------------
 
 def evaluate_writing(task_type, task_prompt, student_response):
 
+    if task_type == "Write for an Academic Discussion":
+
+        rubric = """
+Evaluate the response using the TOEFL iBT Writing for an Academic
+Discussion scoring scale from 0 to 5.
+
+Score 5:
+The response is highly effective. It clearly contributes to the
+discussion, expresses ideas clearly, and provides relevant and well-
+developed explanations or examples. Language use is appropriate and
+generally accurate, with a good range of vocabulary and grammar.
+Minor errors may occur but do not affect communication.
+
+Score 4:
+The response is effective and relevant. It clearly expresses a position
+and contributes meaningfully to the discussion. Ideas are adequately
+developed and supported. There may be some errors or limitations in
+language use, but they generally do not interfere with communication.
+
+Score 3:
+The response is generally relevant and understandable but may be
+limited in development, explanation, or support. The contribution to
+the discussion may be somewhat basic or incomplete. Language errors,
+limited vocabulary, or sentence structure problems may sometimes
+affect clarity, but the main meaning is generally understandable.
+
+Score 2:
+The response shows limited ability to contribute to the discussion.
+Ideas may be unclear, insufficiently developed, repetitive, or only
+partially relevant. Language errors and limited language control may
+make the response difficult to understand in places.
+
+Score 1:
+The response provides very little relevant content or does not
+meaningfully contribute to the discussion. Ideas are severely limited
+or unclear, and frequent language problems significantly interfere
+with communication.
+
+Score 0:
+The response is blank, copied from the prompt, completely irrelevant,
+not written in English, or does not provide a meaningful response
+to the task.
+"""
+
+    else:
+
+        rubric = """
+Evaluate the response as a TOEFL iBT Writing "Write an Email" task.
+
+Consider the following areas as part of the overall evaluation:
+
+- Does the writer successfully accomplish the purpose of the email?
+- Does the writer address the required points in the task?
+- Is the message clear, relevant, and appropriately developed?
+- Is the organization appropriate for an email?
+- Is the tone appropriate for the intended recipient and situation?
+- Is the language generally accurate and effective?
+- Does the writer use appropriate vocabulary and sentence structures?
+
+Give an estimated score from 0 to 5 based on the overall effectiveness
+of the response.
+
+Do not give separate numerical scores for grammar, vocabulary,
+organization, or task achievement.
+"""
+
     evaluation_prompt = f"""
 You are an experienced TOEFL Writing teacher and evaluator.
 
-Evaluate the student's writing response carefully.
+Your job is to evaluate a student's response carefully and fairly.
 
 TASK TYPE:
 {task_type}
@@ -97,66 +163,79 @@ TASK PROMPT:
 STUDENT RESPONSE:
 {student_response}
 
-Evaluate the response based on:
+SCORING GUIDELINES:
+{rubric}
 
-1. TASK ACHIEVEMENT
-- Does the student address the task?
-- Does the response answer the prompt appropriately?
-- Are ideas relevant and developed?
+IMPORTANT EVALUATION RULES:
 
-2. ORGANIZATION AND COHERENCE
-- Is the response logically organized?
-- Are ideas connected clearly?
-- Are transitions used effectively?
+- Give ONE overall estimated score from 0 to 5.
+- Do not give a score from 0 to 30.
+- Do not calculate the score by averaging separate categories.
+- Base the score on the student's actual response.
+- Do not invent problems that are not present.
+- Do not penalize the student simply for using simple language.
+- Do not reward unnecessarily complex vocabulary or grammar.
+- Focus on whether the language is effective for the task.
+- Consider the student's ideas, development, relevance, organization,
+  and language together when assigning the overall score.
+- The score must be consistent with the rubric above.
+- Keep the feedback concise and useful for a student.
+- Do not write a long essay about the student's performance.
+- Do not require formal research or evidence unless the task requires it.
+- For Academic Discussion, the student should engage with the discussion
+  and support their position, but formal academic evidence is not required.
+- Do not rewrite the student's response into an unrealistically advanced
+  level.
+- Keep the improved version close to the student's original ideas and
+  approximate language level.
 
-3. LANGUAGE USE
-- Grammar accuracy
-- Sentence structure
-- Vocabulary range and precision
-- Word choice
+Return ONLY the following sections:
 
-4. CLARITY
-- Is the student's meaning clear?
-- Do language errors interfere with communication?
+## Estimated Score: X/5
 
-Provide your evaluation using this structure:
-
-## Estimated Score
-Give an estimated TOEFL Writing score and briefly explain the score.
-
-## Task Achievement
-Explain how effectively the student addressed the task.
-Use specific examples from the response.
-
-## Organization and Coherence
-Comment on organization, development, and connections between ideas.
-
-## Language Use
-Comment on grammar, vocabulary, sentence structure, and word choice.
+## Why?
+Write 2-3 concise sentences explaining why the response fits this
+score according to the rubric.
 
 ## What You Did Well
-Give 3 specific strengths based on the student's actual response.
+- Give exactly 2 specific strengths from the student's response.
 
-## What You Should Improve
-Give 3 specific and practical suggestions.
+## What to Improve
+- Give exactly 2 specific and actionable suggestions that would help
+  the student improve their performance.
 
-## Corrections
-Identify up to 5 important errors.
+## Language Corrections
+Give a maximum of 3 important corrections.
 
-For each error, use:
+For each correction, use:
 
 Original:
 Correction:
-Explanation:
+Why:
 
-## Improved Version
-Write an improved version of the student's response.
-Keep the student's original ideas and meaning.
-Do not introduce completely new ideas.
+Only include meaningful errors or improvements.
+Do not correct every minor punctuation mistake.
 
-Be supportive and constructive.
-Avoid generic feedback.
-Use specific examples from the student's response.
+If there are no important errors, write:
+"No major language errors."
+
+## Better Version
+Write a concise improved version of the student's response.
+
+Keep:
+- The student's original main ideas.
+- The student's original position or purpose.
+- A similar level of complexity.
+
+Improve:
+- Clarity.
+- Organization.
+- Important grammar or vocabulary problems.
+
+Do not add completely new arguments.
+Do not make the response unnecessarily sophisticated.
+
+Keep the entire evaluation concise and student-friendly.
 """
 
     response = client.chat.completions.create(
@@ -165,8 +244,8 @@ Use specific examples from the student's response.
             {
                 "role": "system",
                 "content": (
-                    "You are an expert English teacher "
-                    "and TOEFL Writing evaluator."
+                    "You are a careful and fair TOEFL Writing evaluator. "
+                    "Follow the provided scoring criteria exactly."
                 )
             },
             {
@@ -175,7 +254,7 @@ Use specific examples from the student's response.
             }
         ],
         temperature=0.2,
-        max_tokens=3000
+        max_tokens=1800
     )
 
     return response.choices[0].message.content
