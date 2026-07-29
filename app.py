@@ -72,13 +72,13 @@ task_prompt = st.text_area(
 st.subheader("Your Response")
 
 student_response = st.text_area(
-    "Paste your response here:",
+    "Paste your TOEFL writing response here:",
     height=300,
-    placeholder="Paste your TOEFL writing response here..."
+    placeholder="Paste your writing response here..."
 )
 
 # ---------------------------------------------------------
-# EVALUATION PROMPT
+# EVALUATION FUNCTION
 # ---------------------------------------------------------
 
 def evaluate_writing(task_type, task_prompt, student_response):
@@ -91,40 +91,41 @@ Discussion scoring scale from 0 to 5.
 
 Score 5:
 The response is highly effective. It clearly contributes to the
-discussion, expresses ideas clearly, and provides relevant and well-
-developed explanations or examples. Language use is appropriate and
-generally accurate, with a good range of vocabulary and grammar.
+discussion, expresses ideas clearly, and provides relevant and
+well-developed explanations or examples. Language use is appropriate
+and generally accurate, with a good range of vocabulary and grammar.
 Minor errors may occur but do not affect communication.
 
 Score 4:
-The response is effective and relevant. It clearly expresses a position
-and contributes meaningfully to the discussion. Ideas are adequately
-developed and supported. There may be some errors or limitations in
-language use, but they generally do not interfere with communication.
+The response is effective and relevant. It clearly expresses a
+position and contributes meaningfully to the discussion. Ideas are
+adequately developed and supported. There may be some errors or
+limitations in language use, but they generally do not interfere
+with communication.
 
 Score 3:
 The response is generally relevant and understandable but may be
-limited in development, explanation, or support. The contribution to
-the discussion may be somewhat basic or incomplete. Language errors,
-limited vocabulary, or sentence structure problems may sometimes
-affect clarity, but the main meaning is generally understandable.
+limited in development, explanation, or support. The contribution
+to the discussion may be somewhat basic or incomplete. Language
+errors, limited vocabulary, or sentence structure problems may
+sometimes affect clarity, but the main meaning is generally
+understandable.
 
 Score 2:
 The response shows limited ability to contribute to the discussion.
 Ideas may be unclear, insufficiently developed, repetitive, or only
-partially relevant. Language errors and limited language control may
-make the response difficult to understand in places.
+partially relevant. Language errors and limited language control
+may make the response difficult to understand in places.
 
 Score 1:
 The response provides very little relevant content or does not
-meaningfully contribute to the discussion. Ideas are severely limited
-or unclear, and frequent language problems significantly interfere
-with communication.
+meaningfully contribute to the discussion. Ideas are severely
+limited or unclear, and frequent language problems significantly
+interfere with communication.
 
 Score 0:
 The response is blank, copied from the prompt, completely irrelevant,
-not written in English, or does not provide a meaningful response
-to the task.
+not written in English, or does not provide a meaningful response.
 """
 
     else:
@@ -152,7 +153,7 @@ organization, or task achievement.
     evaluation_prompt = f"""
 You are an experienced TOEFL Writing teacher and evaluator.
 
-Your job is to evaluate a student's response carefully and fairly.
+Your job is to evaluate a student's response accurately and fairly.
 
 TASK TYPE:
 {task_type}
@@ -166,46 +167,152 @@ STUDENT RESPONSE:
 SCORING GUIDELINES:
 {rubric}
 
-IMPORTANT EVALUATION RULES:
+IMPORTANT EVALUATION PRINCIPLES:
 
-- Give ONE overall estimated score from 0 to 5.
-- Do not give a score from 0 to 30.
-- Do not calculate the score by averaging separate categories.
-- Base the score on the student's actual response.
-- Do not invent problems that are not present.
-- Do not penalize the student simply for using simple language.
-- Do not reward unnecessarily complex vocabulary or grammar.
-- Focus on whether the language is effective for the task.
-- Consider the student's ideas, development, relevance, organization,
-  and language together when assigning the overall score.
-- The score must be consistent with the rubric above.
-- Keep the feedback concise and useful for a student.
-- Do not write a long essay about the student's performance.
-- Do not require formal research or evidence unless the task requires it.
-- For Academic Discussion, the student should engage with the discussion
-  and support their position, but formal academic evidence is not required.
-- Do not rewrite the student's response into an unrealistically advanced
-  level.
-- Keep the improved version close to the student's original ideas and
-  approximate language level.
+1. SCORE THE RESPONSE AS IT IS.
+
+Evaluate the student's actual writing, not a rewritten or improved
+version.
+
+2. DO NOT CONFUSE STYLE WITH ERROR.
+
+This is extremely important.
+
+Do NOT identify a sentence as an error simply because you would
+personally express it differently.
+
+Do NOT change language merely to make it:
+- more formal
+- more sophisticated
+- more academic
+- more concise
+- more elegant
+- more native-like
+
+If the student's sentence is grammatically correct, clear, natural
+enough for the context, and appropriate for the task, leave it alone.
+
+For example, these are acceptable and should NOT be treated as
+errors:
+
+"I think that it would make a big difference."
+
+"I believe that it would make a significant difference."
+
+Both are grammatically correct. The second is simply a stylistic
+alternative.
+
+Likewise:
+
+"One thing that can be improved is how fast the stories are read."
+
+should NOT automatically be changed to:
+
+"One aspect that could be improved is the speed at which the stories
+are read."
+
+The original sentence is clear and grammatically acceptable.
+
+3. ONLY CORRECT REAL PROBLEMS.
+
+Language corrections should focus on:
+- grammatical errors
+- incorrect word choice
+- incorrect word forms
+- incorrect verb forms
+- missing or incorrect articles when they affect accuracy
+- sentence structure problems
+- expressions that are genuinely unnatural or confusing
+- language that is inappropriate for the context
+
+Do not correct a sentence simply because you prefer another style.
+
+4. PRIORITIZE ACCURACY OVER SOPHISTICATION.
+
+A student should not receive a lower score because they use simple
+but accurate language.
+
+Do not encourage students to replace simple correct expressions
+with unnecessarily sophisticated vocabulary.
+
+5. DO NOT OVER-CORRECT.
+
+Give a maximum of 3 language corrections.
+
+If the response contains fewer than 3 genuine language problems,
+give fewer corrections.
+
+If there are no meaningful language problems, write:
+
+"No major language errors."
+
+6. EXPLAIN WHY A CORRECTION IS NECESSARY.
+
+Every correction must identify a genuine language problem.
+
+Do not use explanations such as:
+- "This sounds more sophisticated."
+- "This improves vocabulary."
+- "This is more formal."
+
+unless the original is genuinely inappropriate for the task.
+
+7. THE BETTER VERSION MUST STAY CLOSE TO THE ORIGINAL.
+
+Do not rewrite the student's response simply to make it sound like
+a native speaker wrote it.
+
+Do not replace correct expressions with stylistic alternatives.
+
+Only make changes that:
+- correct genuine errors
+- improve clarity when necessary
+- improve organization when genuinely needed
+- address missing task requirements
+
+Keep the student's original ideas, voice, and approximate language
+level.
+
+8. DO NOT REQUIRE "EVIDENCE" UNLESS THE TASK REQUIRES IT.
+
+For Academic Discussion, students should explain or support their
+ideas, but they do not need formal academic evidence or research.
+
+Use terms such as "explanation," "support," or "development" rather
+than "evidence" when appropriate.
+
+9. DO NOT INVENT PROBLEMS.
+
+Base all feedback on the student's actual response.
+
+10. DO NOT GIVE A 0-30 SCORE.
+
+Give ONE overall estimated score from 0 to 5.
 
 Return ONLY the following sections:
 
 ## Estimated Score: X/5
 
 ## Why?
+
 Write 2-3 concise sentences explaining why the response fits this
-score according to the rubric.
+score according to the scoring guidelines.
 
 ## What You Did Well
-- Give exactly 2 specific strengths from the student's response.
+
+Give exactly 2 specific strengths based on the student's actual
+response.
 
 ## What to Improve
-- Give exactly 2 specific and actionable suggestions that would help
-  the student improve their performance.
+
+Give exactly 2 specific and actionable suggestions.
+
+Focus on the changes that would most help the student improve their
+performance.
 
 ## Language Corrections
-Give a maximum of 3 important corrections.
+
+Give a maximum of 3 genuine language corrections.
 
 For each correction, use:
 
@@ -213,29 +320,32 @@ Original:
 Correction:
 Why:
 
-Only include meaningful errors or improvements.
-Do not correct every minor punctuation mistake.
+Only include real errors or problems with clarity, accuracy, or
+appropriateness.
+
+Do NOT include stylistic alternatives.
 
 If there are no important errors, write:
+
 "No major language errors."
 
 ## Better Version
+
 Write a concise improved version of the student's response.
 
-Keep:
-- The student's original main ideas.
-- The student's original position or purpose.
-- A similar level of complexity.
+Keep the student's:
+- original ideas
+- original meaning
+- approximate language level
+- personal voice
 
-Improve:
-- Clarity.
-- Organization.
-- Important grammar or vocabulary problems.
+Do not unnecessarily replace correct vocabulary or grammar.
 
-Do not add completely new arguments.
-Do not make the response unnecessarily sophisticated.
+Only change language when there is a clear reason to do so.
 
-Keep the entire evaluation concise and student-friendly.
+Do not add new arguments or ideas.
+
+Keep the evaluation concise and student-friendly.
 """
 
     response = client.chat.completions.create(
@@ -245,7 +355,8 @@ Keep the entire evaluation concise and student-friendly.
                 "role": "system",
                 "content": (
                     "You are a careful and fair TOEFL Writing evaluator. "
-                    "Follow the provided scoring criteria exactly."
+                    "Your priority is accurate evaluation, not rewriting. "
+                    "Do not confuse stylistic preferences with language errors."
                 )
             },
             {
@@ -253,7 +364,7 @@ Keep the entire evaluation concise and student-friendly.
                 "content": evaluation_prompt
             }
         ],
-        temperature=0.2,
+        temperature=0.1,
         max_tokens=1800
     )
 
