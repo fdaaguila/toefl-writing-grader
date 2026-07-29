@@ -1,18 +1,39 @@
 import streamlit as st
+import google.generativeai as genai
 
-# Page configuration
+# ---------------------------------------------------------
+# PAGE CONFIGURATION
+# ---------------------------------------------------------
+
 st.set_page_config(
     page_title="TOEFL Writing AI Grader",
     page_icon="📝",
     layout="centered"
 )
 
-# Title
+# ---------------------------------------------------------
+# CONNECT TO GEMINI
+# ---------------------------------------------------------
+
+try:
+    api_key = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key)
+except Exception:
+    st.error(
+        "The Gemini API key could not be found. "
+        "Please check your Streamlit Secrets."
+    )
+    st.stop()
+
+# ---------------------------------------------------------
+# TITLE
+# ---------------------------------------------------------
+
 st.title("📝 TOEFL Writing AI Grader")
 
 st.write(
     "Practice your TOEFL Writing skills and receive AI-powered "
-    "feedback based on the official ETS scoring guides."
+    "feedback based on TOEFL scoring criteria."
 )
 
 st.info(
@@ -20,7 +41,10 @@ st.info(
     "It is not an official ETS score."
 )
 
-# Task selection
+# ---------------------------------------------------------
+# TASK SELECTION
+# ---------------------------------------------------------
+
 task_type = st.selectbox(
     "Choose your TOEFL Writing task:",
     [
@@ -29,7 +53,10 @@ task_type = st.selectbox(
     ]
 )
 
-# Task prompt
+# ---------------------------------------------------------
+# TASK PROMPT
+# ---------------------------------------------------------
+
 st.subheader("TOEFL Task")
 
 task_prompt = st.text_area(
@@ -38,7 +65,10 @@ task_prompt = st.text_area(
     placeholder="Paste the complete TOEFL task here..."
 )
 
-# Student response
+# ---------------------------------------------------------
+# STUDENT RESPONSE
+# ---------------------------------------------------------
+
 st.subheader("Your Response")
 
 student_response = st.text_area(
@@ -47,7 +77,98 @@ student_response = st.text_area(
     placeholder="Paste your TOEFL writing response here..."
 )
 
-# Evaluate button
+# ---------------------------------------------------------
+# EVALUATION FUNCTION
+# ---------------------------------------------------------
+
+def evaluate_writing(task_type, task_prompt, student_response):
+
+    model = genai.GenerativeModel(
+        "gemini-1.5-flash"
+    )
+
+    evaluation_prompt = f"""
+You are an experienced TOEFL Writing teacher and evaluator.
+
+Your task is to evaluate a student's TOEFL Writing response.
+
+TASK TYPE:
+{task_type}
+
+TASK PROMPT:
+{task_prompt}
+
+STUDENT RESPONSE:
+{student_response}
+
+Evaluate the response using the following criteria:
+
+1. TASK ACHIEVEMENT
+- Does the student fully address the task?
+- Are all parts of the prompt answered?
+- Are the ideas relevant and sufficiently developed?
+
+2. ORGANIZATION AND COHERENCE
+- Is the response logically organized?
+- Are ideas connected clearly?
+- Are transitions and relationships between ideas effective?
+
+3. LANGUAGE USE
+- Grammar accuracy
+- Sentence structure
+- Vocabulary range and precision
+- Appropriate word choice
+
+4. COMMUNICATION
+- Is the meaning clear?
+- Are errors serious enough to interfere with understanding?
+
+Provide the evaluation in this exact structure:
+
+## Estimated Score
+Give an estimated TOEFL Writing score and explain briefly why.
+
+## Task Achievement
+Give specific feedback about how well the student answered the task.
+
+## Organization and Coherence
+Give specific feedback about organization, paragraphing, and connections between ideas.
+
+## Language Use
+Identify important grammar, vocabulary, and sentence structure issues.
+
+## What You Did Well
+Give 3 specific strengths from the student's actual response.
+
+## What You Should Improve
+Give 3 specific and practical areas for improvement.
+
+## Corrections
+Identify up to 5 important errors.
+For each one, show:
+- Original
+- Correction
+- Explanation
+
+## Improved Version
+Write an improved version of the student's response.
+Keep the student's original ideas as much as possible.
+Do not introduce completely new ideas.
+
+Be supportive and constructive.
+Do not give generic feedback.
+Use specific examples from the student's response.
+"""
+
+    response = model.generate_content(evaluation_prompt)
+
+    return response.text
+
+
+# ---------------------------------------------------------
+# EVALUATE BUTTON
+# ---------------------------------------------------------
+
 if st.button("🔍 Evaluate My Writing", type="primary"):
 
     if not task_prompt.strip():
@@ -57,16 +178,25 @@ if st.button("🔍 Evaluate My Writing", type="primary"):
         st.warning("Please enter your writing response.")
 
     else:
-        st.success(
-            "Your response is ready to be evaluated!"
-        )
 
-        st.write("### Selected Task")
-        st.write(task_type)
+        with st.spinner("Evaluating your writing..."):
 
-        st.write("### Your Response")
-        st.write(student_response)
+            try:
 
-        st.info(
-            "The AI evaluation system will be connected in the next step."
-        )
+                evaluation = evaluate_writing(
+                    task_type,
+                    task_prompt,
+                    student_response
+                )
+
+                st.success("Evaluation complete!")
+
+                st.markdown(evaluation)
+
+            except Exception as e:
+
+                st.error(
+                    "Something went wrong while evaluating your response."
+                )
+
+                st.code(str(e))
