@@ -84,7 +84,7 @@ student_response = st.text_area(
 def evaluate_writing(task_type, task_prompt, student_response):
 
     model = genai.GenerativeModel(
-        "gemini-1.5-flash"
+        "gemini-2.0-flash"
     )
 
     evaluation_prompt = f"""
