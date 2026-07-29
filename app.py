@@ -12,12 +12,47 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
+# CUSTOM AESTHETIC
+# ---------------------------------------------------------
+
+st.markdown(
+    """
+    <style>
+    .feedback-text {
+        text-align: justify;
+        line-height: 1.7;
+    }
+
+    .feedback-text p {
+        text-align: justify;
+        line-height: 1.7;
+    }
+
+    .feedback-text li {
+        text-align: justify;
+        line-height: 1.7;
+    }
+
+    .feedback-text strong {
+        font-weight: 700;
+    }
+
+    .feedback-text em {
+        font-style: italic;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# ---------------------------------------------------------
 # CONNECT TO GROQ
 # ---------------------------------------------------------
 
 try:
     api_key = st.secrets["GROQ_API_KEY"]
     client = Groq(api_key=api_key)
+
 except Exception:
     st.error(
         "The Groq API key could not be found. "
@@ -244,6 +279,11 @@ examples, extensive explanations, or detailed evidence.
 Consider what the student actually needs to communicate in order
 to successfully accomplish the task.
 
+A brief explanation can be sufficient if it clearly fulfills the
+task requirement.
+
+Do not automatically treat brevity as insufficient development.
+
 Before saying that an idea needs more development, check whether
 the student has already explained or supported that idea elsewhere
 in the response.
@@ -432,6 +472,22 @@ Only A and meaningful examples of B should appear as corrections.
 
 Do NOT present category C as an error.
 
+IMPORTANT:
+
+An understandable but awkward expression is NOT automatically a
+grammatical error.
+
+For example:
+
+"My siblings like very much the reading program."
+
+The meaning is clear, but the word order is awkward.
+
+If you correct it, explain that the expression is awkward or
+unnatural, NOT that it is grammatically incorrect.
+
+Do not exaggerate the seriousness of minor language issues.
+
 =========================================================
 8. DO NOT OVER-CORRECT
 =========================================================
@@ -522,7 +578,8 @@ Do not recommend adding examples or explanations merely because
 they are possible.
 
 Only recommend additional development when it is genuinely needed
-to fulfill the task or reach the next score level.
+to fulfill the task or when the lack of development clearly limits
+the response according to the scoring criteria.
 
 =========================================================
 12. THE BETTER VERSION MUST STAY VERY CLOSE TO THE ORIGINAL
@@ -547,19 +604,22 @@ Preserve the student's:
 
 Make the FEWEST changes necessary.
 
-The Better Version should normally be a minimally edited version
-of the student's original response.
-
 PRIORITY ORDER FOR CHANGES:
 
 1. Correct genuine grammatical errors.
+
 2. Correct incorrect verb forms or word forms.
+
 3. Correct incorrect word choice when it affects meaning or accuracy.
+
 4. Fix unclear language when clarification is genuinely necessary.
+
 5. Fix awkward expressions only when they are genuinely problematic,
    not merely because another expression sounds more natural.
+
 6. Improve organization only when the original organization causes
    a real problem.
+
 7. Add a small amount of development ONLY when a task requirement
    is genuinely incomplete or when the lack of development clearly
    limits the score.
@@ -580,6 +640,16 @@ DO NOT:
 - rewrite correct sentences just because another version sounds
   more natural,
 - shorten the response unnecessarily.
+
+IMPORTANT:
+
+Do NOT add new explanations, examples, consequences, or supporting
+details when the student has already fulfilled the task requirement.
+
+Even if the added information would make the response "more
+developed," do not add it unless the lack of development genuinely
+prevents the response from meeting the task requirements or clearly
+limits the score.
 
 For example, if the student writes:
 
@@ -625,7 +695,7 @@ are read too quickly, and she doesn't understand everything."
 This is acceptable because it corrects genuine errors and clarifies
 the meaning.
 
-DO NOT automatically add new explanations such as:
+Do NOT automatically add new information such as:
 
 "This helps children improve their reading skills."
 
@@ -655,6 +725,8 @@ For a score of 3:
 - Add only limited development if a genuine weakness in task
   fulfillment or development prevents a higher score.
 - Do not rewrite the response into a 4/5 or 5/5 response.
+- Do not add new supporting details simply to make the response
+  appear more developed.
 
 For a score of 4:
 
@@ -699,6 +771,26 @@ as though they are necessary for a higher score.
 If the response receives a 3/5 because of language problems,
 the Better Version should primarily correct those language problems
 rather than substantially changing the content.
+
+=========================================================
+15. FORMATTING AND READABILITY
+=========================================================
+
+Use Markdown formatting to make the feedback easy for a student
+to read.
+
+Use:
+
+- **bold** for important terms, key strengths, and important
+  corrections when appropriate.
+- *italics* sparingly for emphasis or examples.
+- Bullet points when they improve readability.
+
+Do not overuse bold or italics.
+
+Keep paragraphs reasonably short.
+
+The feedback should be visually clear and easy to scan.
 
 =========================================================
 REQUIRED FEEDBACK FORMAT
@@ -780,9 +872,12 @@ the student's performance.
 
 For each issue, use exactly this format:
 
-Original:
-Correction:
-Why:
+**Original:** "student's original wording"
+
+**Correction:** "corrected wording"
+
+**Why:** Explanation of the genuine error or meaningful language
+problem.
 
 Only include genuine errors or meaningful language issues.
 
@@ -847,10 +942,15 @@ internally consistent, and student-friendly.
                     "Evaluate the student's actual response. "
                     "Never invent weaknesses, errors, or missing task requirements. "
                     "Never confuse stylistic preferences with genuine language errors. "
+                    "Clearly distinguish between grammatical errors and expressions "
+                    "that are merely awkward or less natural. "
                     "When providing a Better Version, make the fewest changes "
                     "necessary and preserve the student's original ideas, "
-                    "meaning, voice, organization, and approximate language level. "
-                    "Do not rewrite correct language unnecessarily."
+                    "meaning, voice, organization, details, and approximate "
+                    "language level. "
+                    "Do not add new information when the task is already fulfilled. "
+                    "Do not rewrite correct language unnecessarily. "
+                    "Keep your evaluation internally consistent."
                 )
             },
             {
@@ -902,7 +1002,8 @@ if st.button("🔍 Evaluate My Writing", type="primary"):
                 )
 
                 st.markdown(
-                    evaluation
+                    f'<div class="feedback-text">{evaluation}</div>',
+                    unsafe_allow_html=True
                 )
 
             except Exception as e:
