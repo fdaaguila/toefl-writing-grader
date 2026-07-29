@@ -12,33 +12,40 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# CUSTOM STYLING
+# CUSTOM CSS
 # ---------------------------------------------------------
 
 st.markdown(
     """
     <style>
 
-    /* Justify paragraphs and list text */
-    .stMarkdown p {
-        text-align: justify;
-        line-height: 1.6;
-    }
-
+    /* Main text */
+    .stMarkdown p,
     .stMarkdown li {
         text-align: justify;
-        line-height: 1.6;
+        line-height: 1.65;
     }
 
-    /* Improve readability of headings */
+    /* Headings */
     .stMarkdown h2 {
         margin-top: 1.5rem;
         margin-bottom: 0.7rem;
     }
 
-    /* Improve spacing */
+    /* Evaluation result container */
+    .evaluation-box {
+        padding: 10px 5px;
+    }
+
+    /* Improve spacing between sections */
     .stMarkdown {
-        font-size: 16px;
+        margin-bottom: 8px;
+    }
+
+    /* Make score stand out */
+    .score-highlight {
+        font-size: 1.35rem;
+        font-weight: 700;
     }
 
     </style>
@@ -119,9 +126,9 @@ student_response = st.text_area(
 
 def evaluate_writing(task_type, task_prompt, student_response):
 
-    # ---------------------------------------------------------
-    # RUBRIC: ACADEMIC DISCUSSION
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # SCORING RUBRIC
+    # -----------------------------------------------------
 
     if task_type == "Write for an Academic Discussion":
 
@@ -165,12 +172,9 @@ interfere with communication.
 
 Score 0:
 The response is blank, copied from the prompt, completely irrelevant,
-not written in English, or does not provide a meaningful response.
+not written in English, or does not provide a meaningful response
+to the task.
 """
-
-    # ---------------------------------------------------------
-    # RUBRIC: WRITE AN EMAIL
-    # ---------------------------------------------------------
 
     else:
 
@@ -187,44 +191,39 @@ Consider the following areas as part of the overall evaluation:
 - Is the language generally accurate and effective?
 - Does the writer use appropriate vocabulary and sentence structures?
 
-Give ONE estimated overall score from 0 to 5 based on the overall
-effectiveness of the response.
+Give ONE estimated overall score from 0 to 5.
 
 Do not give separate numerical scores for grammar, vocabulary,
 organization, or task achievement.
 
-IMPORTANT:
+The overall score must reflect the combined quality of the response.
+Completing all task requirements does NOT automatically guarantee a
+4 or 5. However, fulfilling the task requirements should also NOT
+be penalized simply because the student could theoretically provide
+more information.
 
-A response should NOT receive a lower score simply because the
-student could theoretically add more details, examples, explanations,
-or supporting information.
-
-First determine whether the student has sufficiently fulfilled the
-actual requirements of the task.
-
-If all required points are addressed clearly and sufficiently,
-do not claim that the student needs more examples or more development
-unless the lack of development genuinely prevents effective
-communication or affects the scoring criteria.
-
-Do not require multiple examples unless the task specifically
-requires them.
-
-Do not confuse "the student could say more" with "the student has
-not sufficiently fulfilled the task."
+Evaluate the response according to the quality expected at each
+score level.
 """
 
-    # ---------------------------------------------------------
-    # MAIN EVALUATION PROMPT
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
+    # EVALUATION PROMPT
+    # -----------------------------------------------------
 
     evaluation_prompt = f"""
 You are an experienced TOEFL Writing teacher and evaluator.
 
 Your job is to evaluate a student's response accurately, fairly,
-and pedagogically. Your evaluation must be based on the specific
-task prompt, the appropriate scoring criteria, and the student's
-actual writing.
+and pedagogically.
+
+Your evaluation must be based on:
+
+1. The specific task prompt.
+2. The appropriate scoring criteria.
+3. The student's actual writing.
+4. The overall effectiveness of the response.
+
+Do NOT evaluate a rewritten or improved version of the response.
 
 TASK TYPE:
 {task_type}
@@ -298,17 +297,13 @@ automatically receive higher scores.
 Do not lower a score simply because the student could theoretically
 add more information.
 
-IMPORTANT:
+At the same time, do not assume that completing every task requirement
+automatically makes a response a 4 or 5.
 
-If the student has fulfilled all explicit task requirements,
-do not invent a missing requirement.
-
-Do not claim that a response lacks development simply because it
-could contain additional optional information.
-
-Optional additional examples, explanations, or details should NOT
-be treated as score-limiting weaknesses when the task has already
-been sufficiently fulfilled.
+Task fulfillment is ONE important part of the evaluation. The final
+score must also reflect the quality of development, language control,
+clarity, organization, and overall effectiveness described in the
+scoring guidelines.
 
 
 =========================================================
@@ -318,11 +313,17 @@ been sufficiently fulfilled.
 Evaluate whether the student's ideas are sufficiently developed
 for THIS PARTICULAR TASK.
 
-Do not use a fixed idea that every response must contain multiple
-examples, extensive explanations, or detailed evidence.
+Do not use a fixed rule that every response must contain:
+
+- multiple examples,
+- extensive explanations,
+- formal evidence,
+- highly detailed support,
+- sophisticated arguments,
+- or long paragraphs.
 
 Consider what the student actually needs to communicate in order
-to successfully accomplish the task.
+to successfully accomplish THIS task.
 
 For example, if a student is asked to describe one aspect of a
 program that could be improved, and the student:
@@ -334,13 +335,13 @@ program that could be improved, and the student:
 then the requirement may already be sufficiently developed.
 
 Do NOT lower the score simply because the student could provide
-additional details.
+additional optional details.
 
 Before saying that an idea needs more development, check whether
 the student has already explained or supported that idea elsewhere
 in the response.
 
-Do not ask the student to explain something that they have already
+Do not ask a student to explain something that they have already
 explained.
 
 Do not introduce new ideas that are unrelated to the student's
@@ -350,20 +351,14 @@ Evaluate the effectiveness and sufficiency of the student's
 development, not the maximum amount of information they could
 possibly include.
 
-IMPORTANT SCORING DISTINCTION:
+IMPORTANT:
 
-If a response fulfills the task requirements but contains
-noticeable grammatical errors, limited language control, or
-sentence structure problems, the score should reflect those actual
-language limitations.
+"More detail would be possible" is NOT automatically the same as
+"the response is insufficiently developed."
 
-Do NOT incorrectly claim that the response is weaker because it
-needs "more examples" when the actual reason it falls below the
-next score level is language accuracy or language control.
-
-Likewise, do not use lack of development as an excuse to lower a
-score when the student's ideas are already sufficiently developed
-for the task.
+Only identify limited development when the lack of development
+genuinely affects the effectiveness of the response or is relevant
+to the score level.
 
 
 =========================================================
@@ -392,15 +387,24 @@ A response that fully addresses the task requirements with relevant,
 clear, and sufficiently developed ideas should not be downgraded
 simply because additional information could be added.
 
-A response that fulfills the task but contains frequent or noticeable
-language errors should be evaluated according to the effect and
-frequency of those errors.
+However, task fulfillment alone does not automatically justify a
+high score.
 
-Do not ignore language problems simply because the task requirements
-are fulfilled.
+A response may fulfill every explicit task requirement and still
+receive a lower score if:
 
-At the same time, do not invent language problems that are not
-actually present.
+- language errors are frequent or affect clarity,
+- ideas are unclear or insufficiently developed,
+- organization makes the message difficult to follow,
+- the tone is inappropriate,
+- the response is only partially understandable,
+- or the overall effectiveness is limited.
+
+Conversely, a response with simple language can still receive a
+high score if the language is accurate, clear, effective, and
+appropriate for the task.
+
+Use the scoring rubric to determine the final score.
 
 
 =========================================================
@@ -428,17 +432,115 @@ through optional stylistic improvements.
 Only identify score-limiting weaknesses when they genuinely affect
 the effectiveness of the response according to the scoring criteria.
 
-Simple vocabulary is NOT automatically a weakness.
+Do not require sophisticated vocabulary or complex grammar for a 5/5.
 
-Simple sentence structures are NOT automatically a weakness.
-
-A response should not be downgraded simply because it does not use
-advanced or sophisticated vocabulary if the language is accurate,
-clear, and effective.
+Simple but accurate language can receive a 5/5 when it is effective
+for the task.
 
 
 =========================================================
-5. JUSTIFY THE SCORE
+5. CALIBRATE SCORES CAREFULLY
+=========================================================
+
+Use the following general principles when distinguishing score levels.
+
+SCORE 5:
+
+The response is highly effective.
+
+It successfully fulfills the task, communicates clearly, and
+demonstrates strong overall control of language.
+
+Minor errors or awkward expressions may occur, but they do not
+meaningfully reduce effectiveness.
+
+Do not lower a 5 to a 4 merely because the student could add more
+details or use more sophisticated vocabulary.
+
+SCORE 4:
+
+The response is effective overall.
+
+It fulfills the task and communicates its ideas clearly, but there
+are noticeable limitations that genuinely distinguish it from the
+highest level.
+
+Possible limitations may include:
+
+- some language errors,
+- occasional awkward expressions,
+- somewhat limited development,
+- some limitations in organization,
+- or less consistent language control.
+
+However, do NOT invent limitations simply to justify a 4.
+
+Do not say that a response is a 4 because it "could use more detail"
+if the task has already been sufficiently fulfilled and the ideas
+are adequately developed.
+
+SCORE 3:
+
+The response is generally understandable and relevant but has
+meaningful limitations.
+
+These may include:
+
+- noticeable grammatical errors,
+- limited language control,
+- limited development,
+- basic or incomplete support,
+- awkward or unclear expressions,
+- repetitive language,
+- or weaknesses in organization.
+
+A response may fulfill all explicit task requirements and still
+receive a 3 if the overall language control or effectiveness is
+clearly below the level expected for a 4.
+
+Do not automatically give a 4 simply because all task requirements
+are present.
+
+At the same time, do not give a 3 simply because the language is
+simple.
+
+Simple language is acceptable if it is accurate and effective.
+
+SCORE 2:
+
+The response demonstrates limited ability.
+
+There are substantial problems with one or more of the following:
+
+- task fulfillment,
+- clarity,
+- development,
+- organization,
+- language control,
+- or relevance.
+
+The response may be understandable in places but has significant
+limitations that prevent effective communication.
+
+SCORE 1:
+
+The response demonstrates very limited ability.
+
+The content is severely limited, unclear, largely irrelevant,
+or difficult to understand because of frequent language problems.
+
+SCORE 0:
+
+Use 0 only when the response meets the conditions described in
+the scoring guidelines, such as being blank, copied from the prompt,
+completely irrelevant, not written in English, or not providing a
+meaningful response.
+
+Do not give 0 simply because the writing contains many errors.
+
+
+=========================================================
+6. JUSTIFY THE SCORE
 =========================================================
 
 After assigning the score, explain specifically why the response
@@ -467,35 +569,31 @@ the response longer, more detailed, or more sophisticated.
 For a 5/5 response, explain why the response demonstrates the
 characteristics of the highest score level.
 
-IMPORTANT:
+The reason for the score must be consistent with the actual response.
 
-When explaining why a response did not receive the next score,
-identify the REAL score-limiting factor.
+For example, do NOT say:
 
-Possible factors may include:
+"Your response needs more examples"
 
-- incomplete task fulfillment,
-- insufficient development that genuinely affects effectiveness,
-- unclear organization,
-- inappropriate tone,
-- frequent grammatical errors,
-- limited language control,
-- unclear meaning,
-- repetitive or irrelevant ideas.
+if the task did not require additional examples and the student's
+ideas are already sufficiently developed.
 
-Do NOT automatically use:
+Do NOT say:
 
-- "needs more examples"
-- "needs more details"
-- "needs more sophisticated vocabulary"
-- "needs more complex sentence structures"
+"Your vocabulary needs to be more sophisticated"
 
-unless these are genuinely necessary according to the task and
-scoring criteria.
+if the student's vocabulary is simple but accurate and effective.
+
+Do NOT say:
+
+"Your language needs to be more varied"
+
+unless limited language variety genuinely affects the effectiveness
+of the response or is relevant to the scoring criteria.
 
 
 =========================================================
-6. DO NOT CONFUSE STYLE WITH ERROR
+7. DO NOT CONFUSE STYLE WITH ERROR
 =========================================================
 
 This is extremely important.
@@ -539,11 +637,27 @@ stories are read."
 
 That is a stylistic alternative, not a necessary correction.
 
-Do not present stylistic alternatives as errors.
+IMPORTANT DISTINCTION:
+
+A sentence can be:
+
+A. Grammatically incorrect.
+
+B. Grammatically correct but somewhat awkward or less natural.
+
+C. Grammatically correct and natural.
+
+Do not treat B as if it were A.
+
+If a sentence is understandable but somewhat awkward, identify it
+as a minor language issue only if it is genuinely useful for the
+student to learn.
+
+Do not exaggerate the seriousness of minor awkwardness.
 
 
 =========================================================
-7. LANGUAGE FEEDBACK
+8. LANGUAGE FEEDBACK
 =========================================================
 
 Identify language problems only when they are genuinely relevant.
@@ -566,10 +680,32 @@ A. REAL ERROR
 
 The language is incorrect.
 
+Example:
+
+"My younger sister like the stories."
+
+Correction:
+
+"My younger sister likes the stories."
+
 B. MINOR LANGUAGE ISSUE
 
 The language is understandable but slightly unclear, vague,
 awkward, or less natural in a way that is worth teaching.
+
+Example:
+
+"My siblings like very much the reading program."
+
+This is understandable, but the word order is unnatural.
+
+A possible correction is:
+
+"My siblings really like the reading program."
+
+However, do NOT describe the original as completely
+"grammatically incorrect" if the main problem is unnatural
+word order.
 
 C. STYLE
 
@@ -579,14 +715,9 @@ Only A and meaningful examples of B should appear as corrections.
 
 Do NOT present category C as an error.
 
-If a sentence is grammatically correct but could be expressed in a
-more sophisticated way, do not list it as a correction.
-
-If a sentence is simple but correct, leave it alone.
-
 
 =========================================================
-8. DO NOT USE A FIXED NUMBER OF CORRECTIONS
+9. DO NOT USE A FIXED NUMBER OF CORRECTIONS
 =========================================================
 
 Do NOT give a predetermined number of corrections.
@@ -609,15 +740,20 @@ Do not correct every minor punctuation issue unless it represents
 a repeated or important problem.
 
 The goal is useful and accurate feedback, not a long list of
-feedback items.
+corrections.
 
-When a response contains several genuine language problems,
-prioritize the problems that are most important for improving
-accuracy and language control.
+IMPORTANT:
+
+Do not correct correct sentences.
+
+Do not provide a stylistic alternative and label it as a correction.
+
+Do not rewrite every sentence merely because a native speaker might
+phrase it differently.
 
 
 =========================================================
-9. DO NOT PENALIZE SIMPLE BUT CORRECT ENGLISH
+10. DO NOT PENALIZE SIMPLE BUT CORRECT ENGLISH
 =========================================================
 
 A student should not receive a lower score simply because they
@@ -629,25 +765,18 @@ complex language with errors.
 Do not encourage students to use sophisticated vocabulary merely
 for the sake of sounding advanced.
 
-Do not describe simple but correct vocabulary as a weakness.
+Do not recommend "more varied vocabulary" unless limited vocabulary
+actually affects clarity, precision, or effectiveness.
 
-Do not describe simple but correct sentence structures as a
-weakness.
+Do not recommend "more complex sentence structures" simply because
+the student uses simple sentences.
 
-If a response is weaker because of language, identify the actual
-problem, such as:
-
-- grammatical inaccuracy,
-- incorrect word choice,
-- limited control,
-- unclear sentence structure,
-- or frequent errors.
-
-Do not replace "simple" with "weak."
+Recommend greater complexity only when the student's language
+control or development genuinely limits the response.
 
 
 =========================================================
-10. DO NOT REQUIRE FORMAL EVIDENCE UNLESS THE TASK REQUIRES IT
+11. DO NOT REQUIRE FORMAL EVIDENCE UNLESS THE TASK REQUIRES IT
 =========================================================
 
 For Academic Discussion, students should explain and support
@@ -668,7 +797,7 @@ requires evidence.
 
 
 =========================================================
-11. GIVE SPECIFIC AND ACTIONABLE FEEDBACK
+12. GIVE SPECIFIC AND ACTIONABLE FEEDBACK
 =========================================================
 
 Feedback must help the student understand exactly what they did
@@ -690,25 +819,30 @@ Use specific examples from the student's actual response.
 Do not recommend changes that the student has already successfully
 made elsewhere in the response.
 
-If the main weakness is language accuracy, give language-focused
-advice.
+Suggestions must be appropriate for the student's actual score level.
 
-If the main weakness is task fulfillment, give task-focused advice.
+For a low-scoring response, prioritize the most important problems
+first, such as:
 
-If the main weakness is development, identify the specific idea
-that genuinely needs development.
+- completing missing task requirements,
+- improving basic clarity,
+- correcting frequent grammatical errors,
+- or making the main message understandable.
 
-Do not give generic advice that does not match the actual response.
+For a mid-level response, focus on genuine limitations that prevent
+a higher score.
+
+For a high-level response, focus only on minor improvements that
+would genuinely strengthen the response.
+
+Do not give the same advice to every student regardless of score.
 
 
 =========================================================
-12. THE BETTER VERSION MUST BE NECESSARY
+13. THE BETTER VERSION MUST BE NECESSARY
 =========================================================
 
 Do not rewrite the student's response unnecessarily.
-
-The Better Version should primarily demonstrate how the student's
-actual response could be improved based on genuine problems.
 
 If the original response is already clear and effective, say:
 
@@ -736,23 +870,72 @@ Do not add completely new arguments or ideas.
 
 IMPORTANT:
 
-Do not automatically add new examples, explanations, supporting
-details, or arguments to the Better Version.
+The Better Version must be appropriate for the student's score.
 
-If the student has already fulfilled all task requirements,
-focus the revision on genuine language problems and necessary
-clarity improvements.
+For a score of 1 or 2:
 
-If the response is a lower-level response, the Better Version may
-include reasonable improvements in organization, clarity, and
-development only when those improvements are genuinely needed
-to demonstrate a stronger response.
+Focus on making the response understandable, relevant, and complete.
+Correct the most important language problems.
+Address missing task requirements if necessary.
+Do not transform the response into advanced English.
 
-However, do not transform a student's response into an unrealistically
-advanced model answer.
+For a score of 3:
 
-The Better Version should remain recognizably based on the student's
-original response.
+Correct genuine language problems and improve clarity or development
+only where necessary to demonstrate what would move the response
+toward a 4.
+
+Do not add unnecessary sophisticated vocabulary or completely new
+ideas.
+
+For a score of 4:
+
+Make only targeted changes that address the actual limitations
+preventing a 5.
+
+Do not rewrite the response simply to make it sound more native-like.
+
+For a score of 5:
+
+If the response is already effective, do not rewrite it.
+
+State:
+
+"Your original response is already clear and effective.
+No substantial revision is necessary."
+
+Do not create an artificial revision simply because the section
+is called "Better Version."
+
+
+=========================================================
+14. FINAL QUALITY CHECK BEFORE RESPONDING
+=========================================================
+
+Before producing the evaluation, silently check:
+
+1. Did I evaluate the exact task requirements?
+2. Did I score the student's actual response?
+3. Did I distinguish task fulfillment from overall score?
+4. Did I avoid inventing missing development?
+5. Did I avoid requiring unnecessary examples?
+6. Did I distinguish genuine errors from stylistic alternatives?
+7. Did I avoid penalizing simple but correct English?
+8. Did I identify only genuine language problems?
+9. Is the Better Version appropriate for the student's score?
+10. Does the explanation for the score match the actual weaknesses?
+11. If I gave a 4, is there a genuine reason it is not a 5?
+12. If I gave a 3, is there a genuine reason it is not a 4?
+13. If I gave a 2, is there a genuine reason it is not a 3?
+14. Am I recommending changes that the student has already made?
+15. Am I recommending more detail only because I personally prefer
+more detail, or because the task/rubric genuinely requires it?
+
+If a response genuinely demonstrates the next score level,
+assign the higher score.
+
+Do not lower scores simply to create a "Why Not the Next Score?"
+explanation.
 
 
 =========================================================
@@ -773,13 +956,10 @@ Refer specifically to:
 - the task requirements,
 - how effectively the student fulfills them,
 - the development of the ideas,
+- language control,
 - and the overall quality of the response.
 
-If language problems are an important reason for the score,
-mention them specifically.
-
-Do not claim that the student needs more examples or development
-unless this is genuinely a score-limiting issue.
+Do not mention weaknesses that do not genuinely affect the score.
 
 ## Why Not the Next Score?
 
@@ -795,14 +975,11 @@ more information.
 Do NOT say that the response needs more examples or explanations
 if the task requirements have already been sufficiently fulfilled.
 
-Do NOT say that the student needs more sophisticated vocabulary
-simply because the vocabulary is simple.
+Do NOT say that the vocabulary needs to be more sophisticated
+unless this genuinely affects the score.
 
-Do NOT say that the student needs more complex sentence structures
-simply because the sentences are simple.
-
-If the actual limitation is language accuracy or language control,
-say so clearly and refer to the actual errors.
+Do NOT say that the grammar needs to be more complex unless this
+genuinely affects the score.
 
 If the response genuinely demonstrates the characteristics of
 the next higher score, assign the higher score instead.
@@ -823,8 +1000,6 @@ Connect the strengths to the task requirements whenever possible.
 
 Do not praise something the student did not actually do.
 
-Do not give generic praise.
-
 ## What to Improve
 
 Give specific, actionable suggestions based on genuine limitations
@@ -840,17 +1015,8 @@ improvements are needed.
 
 Do not recommend adding information that is already present.
 
-Do not recommend additional examples simply because more examples
-are possible.
-
-If the main weakness is language accuracy, focus the suggestions
-on language accuracy.
-
-If the main weakness is task fulfillment, focus the suggestions
-on task fulfillment.
-
-If the main weakness is development, identify the specific
-development problem.
+Do not recommend more sophisticated vocabulary or grammar unless
+the current language genuinely limits the response.
 
 ## Language Feedback
 
@@ -867,21 +1033,17 @@ Only include genuine errors or meaningful language issues.
 
 Do not include stylistic alternatives.
 
+Distinguish between:
+
+- genuine grammatical errors,
+- minor language issues,
+- and stylistic alternatives.
+
+Only the first two should be included.
+
 If there are no meaningful language problems, write:
 
 "No major language errors."
-
-The "Why" explanation must explain the actual language problem.
-
-Do not say that a correction is necessary because it is:
-
-- more sophisticated,
-- more formal,
-- more academic,
-- more natural-sounding,
-
-unless the original expression is genuinely inappropriate,
-unclear, or incorrect.
 
 ## Better Version
 
@@ -895,26 +1057,19 @@ No substantial revision is necessary."
 If a revision is useful, keep it close to the student's original
 ideas, voice, and language level.
 
-Correct genuine errors first.
+Do not make unnecessary stylistic changes.
 
-Improve clarity or organization only when necessary.
+Do not add completely new arguments or ideas.
 
-Do not add new arguments or ideas.
-
-Do not add optional examples simply to make the response longer.
-
-Do not unnecessarily replace correct vocabulary or grammar.
-
-Do not transform a basic but correct response into an advanced
-native-speaker model.
+The revision should be appropriate for the student's score level.
 
 Keep the entire evaluation concise, specific, accurate,
 and student-friendly.
 """
 
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
     # CALL GROQ
-    # ---------------------------------------------------------
+    # -----------------------------------------------------
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
@@ -923,16 +1078,17 @@ and student-friendly.
                 "role": "system",
                 "content": (
                     "You are a careful and fair TOEFL Writing evaluator. "
-                    "Your priority is accurate evaluation, not rewriting. "
                     "Follow the provided scoring criteria carefully. "
-                    "Evaluate task fulfillment before suggesting additional "
-                    "development. "
-                    "Do not confuse stylistic preferences with language errors. "
-                    "Do not penalize simple but correct English. "
-                    "Do not invent weaknesses, errors, or missing task requirements. "
-                    "When a response is weaker because of language accuracy, "
-                    "identify the actual language problems rather than claiming "
-                    "that optional additional details are required."
+                    "Your priority is accurate evaluation and useful "
+                    "teaching feedback, not rewriting. "
+                    "Never confuse stylistic preferences with genuine "
+                    "language errors. "
+                    "Never invent weaknesses, missing requirements, "
+                    "or language problems. "
+                    "Do not automatically lower a score because a "
+                    "student could theoretically add more information. "
+                    "Do not automatically give a high score simply because "
+                    "the student mentions every task requirement."
                 )
             },
             {
