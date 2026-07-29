@@ -28,8 +28,8 @@ st.markdown(
     /* Section headings */
     .feedback-text h2 {
         text-align: left;
-        margin-top: 28px;
-        margin-bottom: 12px;
+        margin-top: 18px;
+        margin-bottom: 8px;
         font-size: 21px;
         font-weight: 600;
     }
@@ -37,12 +37,13 @@ st.markdown(
     /* Bullet points */
     .feedback-text ul {
         text-align: justify;
-        margin-bottom: 18px;
+        margin-top: 4px;
+        margin-bottom: 10px;
     }
 
     /* Language corrections */
     .correction {
-        margin-bottom: 16px;
+        margin-bottom: 10px;
         text-align: left;
     }
 
@@ -650,7 +651,7 @@ Do not calculate an average of separate categories.
 
 13. OUTPUT FORMAT IS MANDATORY.
 
-Return ONLY the following five sections, in exactly this order:
+Return ONLY the following six sections, in exactly this order:
 
 ## Estimated Score: X/5
 
@@ -689,7 +690,7 @@ NEVER put a heading and its paragraph on the same line.
 
 For example, DO NOT write:
 
-"## Why Not the Next Score? The response does not receive..."
+## Why Not the Next Score? The response does not receive...
 
 Instead, write:
 
@@ -938,87 +939,134 @@ if st.button("🔍 Evaluate My Writing", type="primary"):
 
                 formatted_evaluation = evaluation
 
-                # Convert Markdown headings into HTML headings
-                # so they are clearly separated from the text.
-                formatted_evaluation = formatted_evaluation.replace(
-                    "## Estimated Score:",
-                    "<h2>Estimated Score:"
-                )
-
-                # Close the first heading after the score
                 lines = formatted_evaluation.split("\n")
 
                 processed_lines = []
 
                 for line in lines:
 
-                    if line.startswith("<h2>Estimated Score:"):
-                        processed_lines.append(line + "</h2>")
+                    if line.startswith("## Estimated Score:"):
+
+                        heading_text = line.replace(
+                            "## ",
+                            "",
+                            1
+                        )
+
+                        processed_lines.append(
+                            f"<h2>{heading_text}</h2>"
+                        )
 
                     elif line.startswith("## Why Not the Next Score?"):
+
                         processed_lines.append(
                             "<h2>Why Not the Next Score?</h2>"
                         )
 
                     elif line.startswith("## What You Did Well"):
+
                         processed_lines.append(
                             "<h2>What You Did Well</h2>"
                         )
 
                     elif line.startswith("## What to Improve"):
+
                         processed_lines.append(
                             "<h2>What to Improve</h2>"
                         )
 
                     elif line.startswith("## Language Feedback"):
+
                         processed_lines.append(
                             "<h2>Language Feedback</h2>"
                         )
 
                     elif line.startswith("## Better Version"):
+
                         processed_lines.append(
                             "<h2>Better Version</h2>"
                         )
 
                     else:
+
                         processed_lines.append(line)
 
-                formatted_evaluation = "\n".join(processed_lines)
-
-                # Convert bold Markdown to HTML
-                formatted_evaluation = formatted_evaluation.replace(
-                    "**",
-                    "<strong>",
-                    1
+                formatted_evaluation = "\n".join(
+                    processed_lines
                 )
 
-                # Replace remaining bold markers in pairs
-                while "**" in formatted_evaluation:
+                # -------------------------------------------------
+                # FORMAT BOLD TEXT
+                # -------------------------------------------------
 
-                    formatted_evaluation = formatted_evaluation.replace(
-                        "**",
-                        "</strong>",
-                        1
-                    )
+                import re
 
-                    if "**" in formatted_evaluation:
+                formatted_evaluation = re.sub(
+                    r"\*\*(.*?)\*\*",
+                    r"<strong>\1</strong>",
+                    formatted_evaluation
+                )
 
-                        formatted_evaluation = formatted_evaluation.replace(
-                            "**",
-                            "<strong>",
-                            1
-                        )
+                # -------------------------------------------------
+                # FORMAT BULLET POINTS
+                # -------------------------------------------------
 
-                # Convert arrows and line breaks naturally
+                formatted_evaluation = re.sub(
+                    r"(?m)^\s*-\s+(.*)$",
+                    r"<li>\1</li>",
+                    formatted_evaluation
+                )
+
+                # Wrap consecutive list items
+                formatted_evaluation = re.sub(
+                    r"((?:<li>.*?</li>\s*)+)",
+                    r"<ul>\1</ul>",
+                    formatted_evaluation
+                )
+
+                # -------------------------------------------------
+                # REDUCE EXCESSIVE VERTICAL SPACING
+                # -------------------------------------------------
+
                 formatted_evaluation = formatted_evaluation.replace(
                     "\n\n",
-                    "<br><br>"
+                    "<br>"
                 )
 
                 formatted_evaluation = formatted_evaluation.replace(
                     "\n",
                     "<br>"
                 )
+
+                # Remove unnecessary breaks directly around headings
+                formatted_evaluation = re.sub(
+                    r"<br>\s*(<h2>)",
+                    r"\1",
+                    formatted_evaluation
+                )
+
+                formatted_evaluation = re.sub(
+                    r"(</h2>)\s*<br>",
+                    r"\1",
+                    formatted_evaluation
+                )
+
+                # Remove unnecessary breaks around lists
+                formatted_evaluation = re.sub(
+                    r"<br>\s*<ul>",
+                    "<ul>",
+                    formatted_evaluation
+                )
+
+                formatted_evaluation = re.sub(
+                    r"</ul>\s*<br>",
+                    "</ul>",
+                    formatted_evaluation
+                )
+
+                # -------------------------------------------------
+                # DISPLAY FEEDBACK
+                # -------------------------------------------------
 
                 st.markdown(
                     f"""
