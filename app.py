@@ -1,5 +1,5 @@
 import streamlit as st
-import google.generativeai as genai
+from groq import Groq
 
 # ---------------------------------------------------------
 # PAGE CONFIGURATION
@@ -12,15 +12,15 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# CONNECT TO GEMINI
+# CONNECT TO GROQ
 # ---------------------------------------------------------
 
 try:
-    api_key = st.secrets["GEMINI_API_KEY"]
-    genai.configure(api_key=api_key)
+    api_key = st.secrets["GROQ_API_KEY"]
+    client = Groq(api_key=api_key)
 except Exception:
     st.error(
-        "The Gemini API key could not be found. "
+        "The Groq API key could not be found. "
         "Please check your Streamlit Secrets."
     )
     st.stop()
@@ -83,14 +83,10 @@ student_response = st.text_area(
 
 def evaluate_writing(task_type, task_prompt, student_response):
 
-    model = genai.GenerativeModel(
-        "gemini-2.0-flash"
-    )
-
     evaluation_prompt = f"""
 You are an experienced TOEFL Writing teacher and evaluator.
 
-Your task is to evaluate a student's TOEFL Writing response.
+Evaluate the student's writing response carefully.
 
 TASK TYPE:
 {task_type}
@@ -101,68 +97,88 @@ TASK PROMPT:
 STUDENT RESPONSE:
 {student_response}
 
-Evaluate the response using the following criteria:
+Evaluate the response based on:
 
 1. TASK ACHIEVEMENT
-- Does the student fully address the task?
-- Are all parts of the prompt answered?
-- Are the ideas relevant and sufficiently developed?
+- Does the student address the task?
+- Does the response answer the prompt appropriately?
+- Are ideas relevant and developed?
 
 2. ORGANIZATION AND COHERENCE
 - Is the response logically organized?
 - Are ideas connected clearly?
-- Are transitions and relationships between ideas effective?
+- Are transitions used effectively?
 
 3. LANGUAGE USE
 - Grammar accuracy
 - Sentence structure
 - Vocabulary range and precision
-- Appropriate word choice
+- Word choice
 
-4. COMMUNICATION
-- Is the meaning clear?
-- Are errors serious enough to interfere with understanding?
+4. CLARITY
+- Is the student's meaning clear?
+- Do language errors interfere with communication?
 
-Provide the evaluation in this exact structure:
+Provide your evaluation using this structure:
 
 ## Estimated Score
-Give an estimated TOEFL Writing score and explain briefly why.
+Give an estimated TOEFL Writing score and briefly explain the score.
 
 ## Task Achievement
-Give specific feedback about how well the student answered the task.
+Explain how effectively the student addressed the task.
+Use specific examples from the response.
 
 ## Organization and Coherence
-Give specific feedback about organization, paragraphing, and connections between ideas.
+Comment on organization, development, and connections between ideas.
 
 ## Language Use
-Identify important grammar, vocabulary, and sentence structure issues.
+Comment on grammar, vocabulary, sentence structure, and word choice.
 
 ## What You Did Well
-Give 3 specific strengths from the student's actual response.
+Give 3 specific strengths based on the student's actual response.
 
 ## What You Should Improve
-Give 3 specific and practical areas for improvement.
+Give 3 specific and practical suggestions.
 
 ## Corrections
 Identify up to 5 important errors.
-For each one, show:
-- Original
-- Correction
-- Explanation
+
+For each error, use:
+
+Original:
+Correction:
+Explanation:
 
 ## Improved Version
 Write an improved version of the student's response.
-Keep the student's original ideas as much as possible.
+Keep the student's original ideas and meaning.
 Do not introduce completely new ideas.
 
 Be supportive and constructive.
-Do not give generic feedback.
+Avoid generic feedback.
 Use specific examples from the student's response.
 """
 
-    response = model.generate_content(evaluation_prompt)
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an expert English teacher "
+                    "and TOEFL Writing evaluator."
+                )
+            },
+            {
+                "role": "user",
+                "content": evaluation_prompt
+            }
+        ],
+        temperature=0.2,
+        max_tokens=3000
+    )
 
-    return response.text
+    return response.choices[0].message.content
 
 
 # ---------------------------------------------------------
@@ -172,14 +188,22 @@ Use specific examples from the student's response.
 if st.button("🔍 Evaluate My Writing", type="primary"):
 
     if not task_prompt.strip():
-        st.warning("Please enter the TOEFL task or prompt.")
+
+        st.warning(
+            "Please enter the TOEFL task or prompt."
+        )
 
     elif not student_response.strip():
-        st.warning("Please enter your writing response.")
+
+        st.warning(
+            "Please enter your writing response."
+        )
 
     else:
 
-        with st.spinner("Evaluating your writing..."):
+        with st.spinner(
+            "Evaluating your writing..."
+        ):
 
             try:
 
@@ -189,14 +213,21 @@ if st.button("🔍 Evaluate My Writing", type="primary"):
                     student_response
                 )
 
-                st.success("Evaluation complete!")
+                st.success(
+                    "Evaluation complete!"
+                )
 
-                st.markdown(evaluation)
+                st.markdown(
+                    evaluation
+                )
 
             except Exception as e:
 
                 st.error(
-                    "Something went wrong while evaluating your response."
+                    "Something went wrong while evaluating "
+                    "your response."
                 )
 
-                st.code(str(e))
+                st.code(
+                    str(e)
+                )
