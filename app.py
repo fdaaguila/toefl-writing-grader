@@ -1,5 +1,6 @@
 import streamlit as st
 from groq import Groq
+import re
 
 # ---------------------------------------------------------
 # PAGE CONFIGURATION
@@ -39,6 +40,11 @@ st.markdown(
         text-align: justify;
         margin-top: 4px;
         margin-bottom: 10px;
+        padding-left: 25px;
+    }
+
+    .feedback-text li {
+        margin-bottom: 6px;
     }
 
     /* Language corrections */
@@ -130,159 +136,222 @@ student_response = st.text_area(
 
 def evaluate_writing(task_type, task_prompt, student_response):
 
+    # ---------------------------------------------------------
+    # ACADEMIC DISCUSSION RUBRIC
+    # ---------------------------------------------------------
+
     if task_type == "Write for an Academic Discussion":
 
         rubric = """
 Evaluate the response using the TOEFL iBT Writing for an Academic
 Discussion scoring scale from 0 to 5.
 
-Score 5:
-The response is highly effective. It clearly contributes to the
-discussion, expresses ideas clearly, and provides relevant and
-well-developed explanations or examples. Language use is appropriate
-and generally accurate, with a good range of vocabulary and grammar.
-Minor errors may occur but do not affect communication.
+The score must reflect the overall effectiveness of the student's
+actual response.
 
-Score 4:
-The response is effective and relevant. It clearly expresses a
-position and contributes meaningfully to the discussion. Ideas are
-adequately developed and supported. There may be some errors or
-limitations in language use, but they generally do not interfere
-with communication.
+Evaluate these four broad dimensions together:
 
-Score 3:
-The response is generally relevant and understandable but may be
-limited in development, explanation, or support. The contribution
-to the discussion may be somewhat basic or incomplete. Language
-errors, limited vocabulary, or sentence structure problems may
-sometimes affect clarity, but the main meaning is generally
+1. TASK FULFILLMENT
+- Does the student answer the professor's question?
+- Is the student's position clear?
+- Does the student make a meaningful contribution in their own words?
+- Does the student engage with the ideas presented by other participants
+  when appropriate?
+
+2. DEVELOPMENT AND SUPPORT
+- Does the student explain their reasons?
+- Does the student provide relevant examples or details when useful?
+- Does the student explain why or how their ideas support their position?
+- Does the student develop ideas rather than simply repeat the same claim?
+
+3. ORGANIZATION AND COHERENCE
+- Are the ideas logically connected?
+- Is there a clear progression of ideas?
+- Are transitions used effectively when needed?
+- Is the response easy to follow?
+
+4. LANGUAGE CONTROL
+- Is the grammar generally accurate?
+- Are vocabulary and word choices appropriate?
+- Are sentence structures clear?
+- Do errors interfere with meaning or clarity?
+- Is the language natural enough for effective communication?
+
+Do NOT assign separate numerical scores for these categories.
+Give ONE overall score from 0 to 5.
+
+SCORE 5:
+The response is highly effective. It clearly and fully contributes to
+the discussion, presents a clear position, and develops relevant ideas
+with effective explanations and/or examples. The response is well
+organized and coherent. Language use is accurate and effective, with
+few or no errors that affect clarity. Minor imperfections are possible
+but do not significantly limit the effectiveness of the response.
+
+SCORE 4:
+The response is effective and clearly contributes to the discussion.
+The student's position is clear, and the response provides relevant
+support and development. The student may engage effectively with other
+participants' ideas. The response is generally organized and coherent.
+There may be some genuine language errors, awkward expressions, or
+minor limitations in development or precision, but the overall message
+is clear and effective.
+
+SCORE 3:
+The response is generally relevant and understandable but has noticeable
+limitations in development, explanation, support, organization, or
+language control. The student may express a clear position but develop
+it only partially. Ideas may be somewhat basic, repetitive, or
+insufficiently explained. Language errors or awkward expressions may
+sometimes affect clarity, although the main meaning is generally
 understandable.
 
-Score 2:
-The response shows limited ability to contribute to the discussion.
-Ideas may be unclear, insufficiently developed, repetitive, or only
-partially relevant. Language errors and limited language control
-may make the response difficult to understand in places.
+SCORE 2:
+The response shows limited ability to contribute meaningfully to the
+discussion. Ideas may be unclear, repetitive, insufficiently developed,
+or only partially relevant. The response may have significant problems
+with organization or language control. Errors may frequently interfere
+with clarity or communication.
 
-Score 1:
+SCORE 1:
 The response provides very little relevant content or does not
-meaningfully contribute to the discussion. Ideas are severely
-limited or unclear, and frequent language problems significantly
+meaningfully contribute to the discussion. Ideas are severely limited,
+unclear, or largely irrelevant. Frequent language problems significantly
 interfere with communication.
 
-Score 0:
+SCORE 0:
 The response is blank, copied from the prompt, completely irrelevant,
 not written in English, or does not provide a meaningful response.
+
+IMPORTANT SCORE PRINCIPLES:
+
+- A response does NOT need sophisticated vocabulary or complex grammar
+  to receive a 4 or 5.
+- Simple language can receive a high score if it is accurate, clear,
+  effective, and appropriate.
+- Addressing every task requirement does NOT automatically justify a
+  4 or 5.
+- At the same time, do NOT lower a score simply because the student's
+  ideas are simple if they are clearly explained and effectively
+  supported.
+- Do not count grammar errors mechanically. Consider their frequency,
+  seriousness, and effect on clarity.
+- A few minor errors should not automatically prevent a 5.
+- Several genuine errors that affect clarity or language control should
+  be considered when assigning the score.
+- Development is about explaining and supporting ideas, not about using
+  formal academic research or citations.
 """
+
+    # ---------------------------------------------------------
+    # EMAIL RUBRIC
+    # ---------------------------------------------------------
 
     else:
 
         rubric = """
 Evaluate the response as a TOEFL iBT Writing "Write an Email" task.
 
-Consider the following areas as part of the overall evaluation:
+Evaluate these broad dimensions together:
 
-- Does the writer successfully accomplish the purpose of the email?
-- Does the writer address the required points in the task?
-- Is the message clear, relevant, and appropriately developed?
+1. TASK FULFILLMENT
+- Does the writer accomplish the purpose of the email?
+- Does the writer address the required points?
+- Does the writer respond appropriately to the situation?
+
+2. DEVELOPMENT AND CLARITY
+- Are the relevant ideas sufficiently explained?
+- Is the message clear and complete for the purpose?
+- Are important details included when required?
+
+3. ORGANIZATION AND COHERENCE
+- Is the message logically organized?
+- Are ideas connected clearly?
 - Is the organization appropriate for an email?
-- Is the tone appropriate for the intended recipient and situation?
-- Is the language generally accurate and effective?
-- Does the writer use appropriate vocabulary and sentence structures?
 
-Give an estimated score from 0 to 5 based on the overall effectiveness
-of the response.
+4. TONE AND APPROPRIATENESS
+- Is the tone appropriate for the intended recipient?
+- Is the level of formality suitable for the situation?
 
-Do not give separate numerical scores for grammar, vocabulary,
-organization, or task achievement.
+5. LANGUAGE CONTROL
+- Is the grammar generally accurate?
+- Are vocabulary and word choices appropriate?
+- Are sentence structures clear?
+- Do errors affect communication?
 
-For the Write an Email task, use the following general interpretation
-of the score levels:
+Give ONE overall estimated score from 0 to 5.
 
-Score 5:
+SCORE 5:
 The response is highly effective and successfully accomplishes the
 purpose of the email. It addresses the required points clearly and
-appropriately. Ideas are relevant and sufficiently developed for the
-task. The organization and tone are appropriate for the intended
-recipient and situation. Language use is generally accurate and
-effective. Minor errors may occur but do not significantly affect
-communication.
+appropriately. Ideas are relevant and sufficiently developed. The
+organization and tone are appropriate. Language use is accurate and
+effective. Minor imperfections may occur but do not significantly
+affect communication.
 
-Score 4:
+SCORE 4:
 The response is effective and accomplishes the main purpose of the
 email. It addresses the required points and is generally clear and
 appropriate. Ideas may be somewhat basic or less fully developed.
-The organization and tone are generally appropriate. There may be
-some noticeable language errors or limitations, but the message
+The organization and tone are generally appropriate. There may be some
+noticeable genuine language errors or limitations, but the message
 remains clear and effective overall.
 
-Score 3:
-The response generally accomplishes the task and addresses most or
-all of the required points, but development may be limited. Ideas
-may be basic, repetitive, or insufficiently explained. Language
-control is inconsistent, with noticeable grammatical errors,
-incorrect word forms, awkward expressions, or sentence structure
-problems. The main message is generally understandable, but these
-problems may sometimes affect clarity and effectiveness.
+SCORE 3:
+The response generally accomplishes the task but may have limitations
+in development, clarity, organization, tone, or language control.
+Ideas may be basic, repetitive, or insufficiently explained. Noticeable
+grammar errors, incorrect word forms, awkward expressions, or sentence
+structure problems may sometimes affect clarity.
 
-Score 2:
-The response shows limited ability to accomplish the task. One or
-more required points may be missing, unclear, or insufficiently
-developed. Ideas may be difficult to follow or only partially
-relevant. Frequent language errors and limited language control may
-significantly affect clarity and communication.
+SCORE 2:
+The response shows limited ability to accomplish the task. One or more
+required points may be missing, unclear, or insufficiently developed.
+Ideas may be difficult to follow. Frequent language errors or limited
+language control may significantly affect clarity and communication.
 
-Score 1:
-The response demonstrates very limited ability to accomplish the
-task. Important parts of the task may be missing or largely
-irrelevant. Ideas are severely limited or unclear, and frequent
-language problems significantly interfere with communication.
+SCORE 1:
+The response demonstrates very limited ability to accomplish the task.
+Important parts may be missing or largely irrelevant. Ideas are severely
+limited or unclear, and frequent language problems significantly
+interfere with communication.
 
-Score 0:
+SCORE 0:
 The response is blank, copied from the prompt, completely irrelevant,
 not written in English, or does not provide a meaningful response.
 
-IMPORTANT:
-Do not give a 4 or 5 simply because the student addresses all task
-requirements.
+IMPORTANT SCORE PRINCIPLES:
 
-Task completion is necessary but is not enough for a high score.
-
-A response with multiple genuine grammatical errors, incorrect verb
-forms, subject-verb agreement errors, incorrect prepositions,
-awkward word order, or unclear expressions should not automatically
-receive a 4 or 5.
-
-For example, if a response fulfills all task requirements but contains
-several genuine language problems such as:
-
-"My siblings like very much the reading program."
-
-"They enjoy read books and listen stories."
-
-"My younger sister like the stories."
-
-"She don't understand everything."
-
-"the stories are too fast"
-
-"at/in the future events"
-
-these errors should be considered when assigning the score.
-
-Do not ignore genuine errors simply because the overall message is
-understandable.
-
-At the same time, do not lower the score for simple but correct
-language. Do not require sophisticated vocabulary or complex
-grammar when the student's language is accurate and effective.
+- Completing all task requirements does NOT automatically justify a
+  4 or 5.
+- However, simple but accurate English should not be penalized.
+- Do not require sophisticated vocabulary or complex grammar for a high
+  score.
+- Consider the frequency, seriousness, and effect of genuine language
+  errors on communication.
+- Do not lower the score simply because the student's writing could be
+  expressed in a more formal or sophisticated way.
 """
 
-    evaluation_prompt = f"""
-You are an experienced TOEFL Writing teacher and evaluator.
+    # ---------------------------------------------------------
+    # MAIN EVALUATION PROMPT
+    # ---------------------------------------------------------
 
-Your job is to evaluate a student's response accurately, fairly, and
-consistently according to the scoring guidelines provided below.
+    evaluation_prompt = f"""
+You are an experienced TOEFL Writing teacher, evaluator, and language
+feedback specialist.
+
+Your job is to evaluate a student's response accurately, fairly,
+consistently, and pedagogically.
+
+You must evaluate the student's ACTUAL WRITING.
+
+Do not evaluate what the student might have meant if the actual wording
+does not communicate that meaning clearly.
+
+At the same time, when providing language corrections, use the context
+of the entire response to determine the student's likely intended
+meaning.
 
 TASK TYPE:
 {task_type}
@@ -297,31 +366,83 @@ SCORING GUIDELINES:
 {rubric}
 
 
-IMPORTANT EVALUATION PRINCIPLES
+=========================================================
+PART 1: EVALUATE THE STUDENT'S ACTUAL RESPONSE
+=========================================================
 
-1. SCORE THE RESPONSE AS IT IS.
+First, internally evaluate the response based on:
 
-Evaluate the student's actual writing, not a rewritten or improved
-version.
+- task fulfillment
+- relevance
+- development and support
+- organization and coherence
+- language control
+- clarity
+- appropriateness of tone when relevant
 
-Do not give a higher score based on what the student probably meant.
+Do not show this internal analysis.
 
-Do not assume the student knows a grammar rule if their actual
-response shows an error.
+Then assign ONE overall score from 0 to 5.
 
-Do not correct the response mentally before assigning the score.
+The score must reflect the student's actual writing as submitted.
 
-Evaluate the language that the student actually produced.
+Do not mentally rewrite the student's response before scoring it.
+
+Do not give credit for ideas that are not actually expressed.
+
+Do not assume the student knows a grammar rule if the actual response
+shows a genuine error.
+
+However, do not penalize the student simply for using simple, accurate
+language.
 
 
-2. DO NOT CONFUSE STYLE WITH ERROR.
+=========================================================
+PART 2: DEVELOPMENT MUST BE EVALUATED SPECIFICALLY
+=========================================================
 
-This is extremely important.
+When evaluating development, ask:
+
+- Does the student give reasons for their position?
+- Does the student explain those reasons?
+- Does the student provide relevant examples or details?
+- Does the student explain why or how the examples support the argument?
+- Does the student repeat the same point without adding new information?
+
+Do NOT say only:
+
+"The response needs more detail."
+
+Instead, identify exactly what is missing.
+
+For example:
+
+WEAK FEEDBACK:
+"The ideas could be more developed."
+
+BETTER FEEDBACK:
+"The response gives two reasons for investing in public transportation,
+but the second reason is only briefly mentioned. The writer could explain
+why the limitation of bicycles makes buses and trains a more effective
+option."
+
+Development does NOT require formal research, citations, statistics,
+or academic evidence unless the task specifically asks for them.
+
+For Academic Discussion, relevant explanations, examples, personal
+observations, or logical reasoning can effectively support an idea.
+
+
+=========================================================
+PART 3: DO NOT CONFUSE STYLE WITH ERROR
+=========================================================
+
+This is one of the most important rules.
 
 Do NOT identify a sentence as an error simply because you would
 personally express it differently.
 
-Do NOT change language merely to make it:
+Do NOT change correct language merely to make it:
 
 - more formal
 - more sophisticated
@@ -331,274 +452,356 @@ Do NOT change language merely to make it:
 - more native-like
 
 If the student's sentence is grammatically correct, clear, natural
-enough for the context, and appropriate for the task, leave it alone.
+enough for the context, and appropriate for the task, LEAVE IT ALONE.
 
 For example:
 
-"I think that it would make a big difference."
+"I think that investing in buses and trains should be a priority."
 
-"I believe that it would make a significant difference."
+This is correct.
 
-Both are grammatically correct. The second is simply a stylistic
-alternative.
+Do NOT change it to:
 
-Do not treat a correct sentence as an error just because another
-version sounds more natural to you.
+"I believe that investing in buses and trains should be a priority."
+
+The second version is only a stylistic alternative.
+
+Do NOT present "think → believe" as a correction.
+
+Similarly:
+
+"can't" → "cannot"
+
+This is generally a register preference, not a genuine error.
+
+Do NOT list it as a language error unless the task specifically requires
+a particular level of formality and the original form is genuinely
+inappropriate.
+
+Simple language is NOT automatically weak language.
 
 
-3. ONLY IDENTIFY REAL LANGUAGE PROBLEMS.
+=========================================================
+PART 4: IDENTIFY REAL LANGUAGE PROBLEMS
+=========================================================
 
-Language feedback should focus on genuine problems such as:
+Language feedback should focus on genuine and useful problems such as:
 
 - grammatical errors
 - subject-verb agreement
 - incorrect verb forms
 - incorrect word forms
 - incorrect prepositions
-- missing or incorrect articles when they affect accuracy
+- incorrect articles when they affect accuracy
 - incorrect sentence structures
 - incorrect word order
+- unclear pronoun reference
+- incorrect or misleading word choice
+- incorrect collocations
 - expressions that are genuinely unnatural or confusing
-- language that is inappropriate for the context
+- spelling errors
+- punctuation problems that affect readability
+- wording that makes the intended meaning unclear
 
-Do not label a sentence as an error merely because you prefer another
-style.
+Do NOT include a language correction simply because a different version
+sounds more polished.
 
 
-4. DISTINGUISH BETWEEN ERRORS AND OPTIONAL IMPROVEMENTS.
+=========================================================
+PART 5: DISTINGUISH ERRORS FROM AWKWARD LANGUAGE
+=========================================================
 
-This is extremely important.
+Not every imperfect sentence is completely wrong.
 
-If something is understandable but could be expressed more naturally,
-you may mention the improvement, but do not falsely describe it as a
-grammatical error.
+Use these distinctions:
 
-For example:
+A. GENUINE ERROR
 
-"My siblings like very much the reading program."
-
-This is understandable, but the word order is awkward.
-
-You may suggest:
-
-"My siblings really like the reading program."
-
-or:
-
-"My siblings like the reading program very much."
-
-Explain that the original is understandable but awkwardly phrased.
-
-Do not claim that the original is completely ungrammatical if the
-main problem is awkward word order.
-
-However, genuine errors must be clearly identified.
-
-For example:
+Example:
 
 "They enjoy read books."
 
-This contains a real grammatical error.
-
-Correct:
+Correction:
 
 "They enjoy reading books."
 
-For example:
+Explanation:
 
-"listen stories"
+"Enjoy" is followed by a gerund (-ing form), not the base form.
 
-Correct:
+B. AWKWARD BUT UNDERSTANDABLE
 
-"listen to stories."
+Example:
 
-For example:
+"My siblings like very much the reading program."
 
-"My younger sister like the stories."
+Correction:
 
-Correct:
+"My siblings really like the reading program."
 
-"My younger sister likes the stories."
+Explanation:
 
-For example:
+The meaning is clear, but the word order is awkward. The correction
+expresses the same idea more naturally.
 
-"she don't understand everything."
+C. CORRECT BUT STYLISTICALLY DIFFERENT
 
-Correct:
+Example:
 
-"she doesn't understand everything."
+"I think that investing in buses and trains should be a priority."
 
-For example:
+Do NOT correct this.
 
-"the stories are too fast"
+Do NOT replace "think" with "believe" and call it an error.
 
-A clearer version is:
+D. INCORRECT OR UNNATURAL COLLOCATION
 
-"the stories are read too quickly."
+Example:
 
-Explain that this clarifies that the reading speed is too fast, rather
-than the stories themselves being fast.
+"constructing more transports"
 
+Possible correction:
 
-5. SCORE CONSISTENTLY ACROSS SCORE BANDS.
+"expanding public transportation"
 
-Do not give a 4 or 5 simply because the student addresses every task
-requirement.
+Explanation:
 
-Do not give a 3 automatically because the ideas are simple.
+"Transportation" is not normally something that is "constructed."
+The intended meaning is to expand or improve public transportation
+systems or infrastructure.
 
-Consider the overall combination of:
+E. UNCLEAR MEANING
 
-- task fulfillment
-- relevance
-- development
-- organization
-- language control
-- clarity
-- appropriateness of tone
+If the student's wording is unclear, use the surrounding context to
+infer the most likely intended meaning.
 
-A response can fulfill every task requirement and still receive a 3
-if it contains multiple genuine language errors or has limited
-development.
-
-A response can use simple language and still receive a 4 or 5 if the
-language is accurate, clear, effective, and appropriate for the task.
-
-Do not require advanced vocabulary or complex grammar for a high score.
-
-The score should reflect the actual quality of the response.
+Do NOT make a grammatically correct correction that changes the
+student's intended meaning.
 
 
-6. DO NOT OVER-CORRECT.
+=========================================================
+PART 6: MEANING PRESERVATION
+=========================================================
 
-Give a maximum of 6 language corrections.
+ALWAYS preserve the student's intended meaning when correcting language.
 
-Prioritize the most important and useful corrections.
+Before correcting a sentence:
 
-If there are fewer than 6 genuine problems, give fewer corrections.
+1. Read the entire sentence.
+2. Read the surrounding paragraph.
+3. Determine what the student is most likely trying to communicate.
+4. Correct the language while preserving that meaning.
 
-Do not invent additional corrections simply to reach 6.
+Do NOT simply replace individual words without considering context.
+
+Example:
+
+Student:
+"environment change could be beneficial for the earth."
+
+Do NOT automatically change this to:
+
+"environmental change could be beneficial for the earth."
+
+That changes or potentially distorts the student's intended meaning.
+
+If the surrounding context shows that the student means that people's
+actions can positively affect the environment, a better correction is:
+
+"people's actions can have a positive impact on the environment."
+
+The goal is to communicate the student's intended idea accurately,
+not merely to produce a grammatically improved sentence.
+
+
+=========================================================
+PART 7: CONTEXTUAL CORRECTION
+=========================================================
+
+Do not correct sentences word-by-word in isolation.
+
+Consider the complete meaning.
+
+Example:
+
+"This option is also cheaper than constructing more transports."
+
+Do NOT simply change:
+
+"transports" → "transportation"
+
+The resulting sentence:
+
+"This option is also cheaper than constructing more transportation."
+
+is still unnatural and does not solve the problem.
+
+A contextually appropriate correction may be:
+
+"This option is also cheaper than expanding public transportation."
+
+The correction must address the actual language problem in context.
+
+
+=========================================================
+PART 8: DO NOT INVENT PROBLEMS
+=========================================================
+
+Base all feedback on the student's actual response.
+
+Do not invent:
+
+- grammatical errors
+- vocabulary errors
+- missing information
+- organizational problems
+- development problems
+
+Do not criticize a sentence that is correct.
+
+Do not assume that a sentence is wrong simply because you would write
+it differently.
+
+If there are only two genuine language problems, give two corrections.
+
+Do not invent additional corrections to fill space.
+
+
+=========================================================
+PART 9: LANGUAGE FEEDBACK LIMIT
+=========================================================
+
+Give a MAXIMUM of 6 language corrections.
+
+Give fewer if appropriate.
+
+Prioritize:
+
+1. Errors that affect meaning.
+2. Errors that significantly affect clarity.
+3. Repeated grammar problems.
+4. Important vocabulary or collocation problems.
+5. Sentence structure problems.
+6. Errors that are especially useful for the student to learn from.
+
+Do NOT prioritize minor stylistic preferences.
+
+Do NOT correct every minor punctuation issue.
+
+Do NOT list "think → believe" as a correction.
+
+Do NOT list "can't → cannot" as a correction unless the original is
+inappropriate for the specific task.
 
 If there are no meaningful language problems, write:
 
 "No major language errors."
 
 
-7. CORRECTIONS SHOULD BE CONCISE AND SPECIFIC.
+=========================================================
+PART 10: CORRECTION FORMAT
+=========================================================
 
 Use this format:
 
-Original → Correction
+**Original phrase** → **Correction**
 
 Brief explanation: [short explanation]
 
-For example:
+Examples:
 
-My siblings like very much the reading program → My siblings really like the reading program.
-
-Brief explanation: The original is understandable but has awkward
-word order. The correction expresses the same idea more naturally.
-
-They enjoy read books → They enjoy reading books.
+**They enjoy read books.** → **They enjoy reading books.**
 
 Brief explanation: After "enjoy," use the -ing form of the verb.
 
-listen stories → listen to stories.
+---
+
+**listen stories** → **listen to stories**
 
 Brief explanation: The verb "listen" is followed by the preposition
 "to."
 
-My younger sister like → My younger sister likes.
+---
+
+**My younger sister like the stories.** → **My younger sister likes
+the stories.**
 
 Brief explanation: The singular subject "my younger sister" requires
-the third-person singular verb form "likes."
+the third-person singular form "likes."
 
-she don't understand → she doesn't understand.
+---
 
-Brief explanation: The singular subject "she" requires "doesn't."
+**during a rain** → **in the rain**
 
-the stories are too fast → the stories are read too quickly.
+Brief explanation: "In the rain" is the natural expression for
+describing an activity that takes place while it is raining.
 
-Brief explanation: This clarifies that the problem is the speed at
-which the stories are being read, not the speed of the stories
-themselves.
+---
 
-in the future events → at future events / in future events.
+**constructing more transports** → **expanding public transportation**
 
-Brief explanation: "At future events" or "in future events" is more
-natural in this context.
+Brief explanation: "Constructing more transportation" is not a natural
+collocation. "Expanding public transportation" more accurately expresses
+the intended meaning.
 
+If the original is understandable but awkward, explicitly say:
 
-8. DO NOT REQUIRE FORMAL EVIDENCE UNLESS THE TASK REQUIRES IT.
+"The original is understandable but awkward..."
 
-For Academic Discussion, students should explain or support their
-ideas, but they do not need formal academic evidence or research.
-
-Use terms such as:
-
-- explanation
-- support
-- development
-
-rather than requiring "evidence" when it is not necessary.
+Do not call something a grammatical error if the main issue is
+naturalness or word choice.
 
 
-9. DO NOT INVENT PROBLEMS.
+=========================================================
+PART 11: BETTER VERSION
+=========================================================
 
-Base all feedback on the student's actual response.
+The Better Version is a lightly improved version of the student's own
+response.
 
-Do not invent grammatical errors.
+It is NOT a new model answer.
 
-Do not invent missing information.
+It must:
 
-Do not assume the student made an error that is not actually present.
-
-
-10. THE BETTER VERSION MUST STAY CLOSE TO THE STUDENT'S ORIGINAL.
-
-This is extremely important.
-
-The Better Version is NOT a model answer for a 5/5 response.
-
-It is a lightly improved version of the student's own response.
-
-The Better Version should:
-
-- preserve the student's original ideas
-- preserve the student's original meaning
-- preserve the student's original purpose
+- preserve the student's position
+- preserve the student's main ideas
+- preserve the student's intended meaning
 - preserve the student's personal voice
-- stay close to the student's approximate language level
-- correct genuine grammar and vocabulary errors
+- stay reasonably close to the student's language level
+- correct genuine grammar errors
+- correct inaccurate or confusing word choices
 - improve clarity where necessary
-- improve organization only when genuinely needed
+- improve organization only when genuinely necessary
 
-Do NOT rewrite the entire response into a much more advanced answer.
+DO NOT:
 
-Do NOT add new arguments.
+- invent new arguments
+- invent new evidence
+- invent statistics
+- invent examples
+- add completely new reasons
+- introduce information not present in the student's response
+- substantially change the student's argument
+- transform a B1/B2 response into artificial C1/C2 English
+- replace simple correct language with unnecessarily sophisticated
+  vocabulary
 
-Do NOT add new information that the student did not express.
-
-Do NOT invent examples.
-
-Do NOT substantially change the structure unless the original structure
-is genuinely unclear.
-
-Do NOT replace correct language just because a more sophisticated
-version is possible.
+The Better Version should show the student how THEIR OWN response
+could be improved.
 
 For example, if the student writes:
 
-"My siblings really like the reading program."
+"I think that investing in buses and trains should be a priority."
 
-Keep it.
+KEEP THIS SENTENCE.
 
-Do not change it to:
+Do NOT automatically change it to:
 
-"My siblings have greatly benefited from their participation in the
-weekend reading initiative."
+"I firmly believe that prioritizing investment in integrated public
+transportation infrastructure represents a strategically advantageous
+approach."
 
-That would be unnecessarily sophisticated.
+That would not be an appropriate correction.
 
 If the student writes:
 
@@ -610,46 +813,139 @@ A suitable improvement is:
 "My younger sister likes the stories, but sometimes the stories are
 read too quickly, and she doesn't understand everything."
 
-Do not completely rewrite the student's email.
+This preserves the student's meaning and voice.
 
-You may add a short supporting sentence ONLY when it is clearly useful
-for demonstrating how the student's existing idea could be developed.
+If the student's response lacks development, do NOT automatically add
+a completely new argument.
 
-If the response is already strong, make only minimal corrections.
+Instead, improve the explanation of an existing idea when possible.
+
+For example, if the student already says that bikes are difficult to
+use in the rain, the Better Version may clarify that idea:
+
+"it can be dangerous to ride a bike in the rain because the pavement
+is wet and slippery."
+
+Do NOT add a completely new argument such as:
+
+"Public transportation is also more accessible to people who live far
+from the city center."
+
+unless the student already expressed that idea.
+
+The Better Version must remain recognizably the student's response.
 
 
-11. THE BETTER VERSION SHOULD REFLECT THE SCORE.
+=========================================================
+PART 12: BETTER VERSION MUST REFLECT THE SCORE
+=========================================================
 
-For a low-scoring response, correct the most important errors but do
-not transform it into an advanced response.
+For a score 1 or 2:
 
-For a score 1 or 2 response, the Better Version may remain relatively
-simple.
+- Correct the most important problems.
+- Keep the language relatively simple.
+- Do not transform the response into an advanced model answer.
 
-For a score 3 response, correct genuine errors and make limited
-improvements to clarity and development.
+For a score 3:
 
-For a score 4 response, make only necessary corrections and minor
-improvements.
+- Correct genuine errors.
+- Improve clarity.
+- Make limited improvements to development only when they can be made
+  using the student's existing ideas.
 
-For a score 5 response, make minimal or no changes if the response is
-already effective.
+For a score 4:
+
+- Make necessary language corrections.
+- Make only minor improvements to clarity, precision, and development.
+- Do not substantially rewrite the response.
+
+For a score 5:
+
+- Make minimal corrections.
+- If the response is already effective, preserve it almost entirely.
 
 The Better Version should never make a score 3 response look like a
 perfect 5/5 response through extensive rewriting.
 
 
-12. DO NOT GIVE A 0-30 SCORE.
+=========================================================
+PART 13: "WHY NOT THE NEXT SCORE?" RULES
+=========================================================
 
-Give ONE overall estimated score from 0 to 5.
+The "Why Not the Next Score?" section must explain the MAIN reasons the
+response did not receive the next higher score.
 
-Do not give separate numerical scores for grammar, vocabulary,
-organization, or task achievement.
+Do NOT use vague or generic statements.
 
-Do not calculate an average of separate categories.
+WEAK:
+
+"The response could provide more detail."
+
+BETTER:
+
+"The response gives relevant reasons for investing in public
+transportation, but one of the main arguments is only briefly explained.
+The writer could further explain why the limitations of bicycles make
+buses and trains a more effective investment."
+
+For a 4/5 response, explain what prevents a 5.
+
+For a 3/5 response, explain what prevents a 4.
+
+For a 2/5 response, explain what prevents a 3.
+
+For a 1/5 response, explain what prevents a 2.
+
+For a 5/5 response, write:
+
+"The response demonstrates the characteristics of the highest score
+level. There are no significant limitations that prevent it from
+receiving a 5/5."
+
+The explanation should normally be 2-4 concise sentences.
+
+Mention language problems only when they are genuinely relevant to the
+score.
+
+Do not say that a response is not a 5 simply because it uses simple
+language.
 
 
-13. OUTPUT FORMAT IS MANDATORY.
+=========================================================
+PART 14: QUALITY CONTROL BEFORE FINAL RESPONSE
+=========================================================
+
+Before producing the final answer, silently check your evaluation.
+
+Ask yourself:
+
+1. Did I identify any correct sentence as an error?
+2. Did I change a word only because I prefer a more formal synonym?
+3. Did I incorrectly treat a stylistic preference as a grammar error?
+4. Did I preserve the student's intended meaning?
+5. Did I consider the context before correcting language?
+6. Did I identify the student's most important actual language problems?
+7. Did I distinguish language problems from development problems?
+8. Did I explain specifically why the response received this score?
+9. Did I give the correct score based on the whole response rather than
+   simply counting errors?
+10. Did I add new arguments or evidence to the Better Version?
+11. Does the Better Version remain close to the student's original
+    voice and language level?
+12. Did I avoid inventing problems?
+13. Did I avoid overcorrecting?
+14. Did I avoid requiring sophisticated vocabulary or complex grammar
+    when the student's language is already accurate?
+15. Does the feedback provide useful information the student can apply
+    to future TOEFL writing?
+
+If any answer indicates a problem, revise the feedback internally before
+producing the final response.
+
+
+=========================================================
+PART 15: MANDATORY OUTPUT FORMAT
+=========================================================
 
 Return ONLY the following six sections, in exactly this order:
 
@@ -665,117 +961,66 @@ Return ONLY the following six sections, in exactly this order:
 
 ## Better Version
 
-IMPORTANT FORMATTING RULES:
+FORMATTING RULES:
 
 Every section heading MUST begin with exactly two hash symbols
 followed by a space.
 
-For example:
-
-## Estimated Score: 3/5
-
-## Why Not the Next Score?
-
-## What You Did Well
-
-## What to Improve
-
-## Language Feedback
-
-## Better Version
-
 Every heading MUST appear on its own separate line.
 
-NEVER put a heading and its paragraph on the same line.
-
-For example, DO NOT write:
-
-## Why Not the Next Score? The response does not receive...
-
-Instead, write:
-
-## Why Not the Next Score?
-
-The response does not receive...
-
-Leave one blank line between every heading and the text that follows.
+Leave one blank line between the heading and its content.
 
 Leave one blank line between sections.
 
 Do not remove the ## symbols.
 
-Do not convert the section headings into plain text.
+Do not put all text in bold.
 
-Do not put all the text in bold.
+Use bold only where useful, especially for Original and Correction
+portions of Language Feedback.
 
-Use bold only when it improves readability, especially for the
-Original and Correction portions of language feedback.
+Use bullet points for the two strengths.
 
-Use bullet points for the two strengths in "What You Did Well."
+Use bullet points for the two improvement suggestions.
 
-Use bullet points for the two suggestions in "What to Improve."
+Do not create additional sections.
 
-Do not create any additional sections.
-
-Do not create a section called "Why?" unless it replaces
-"Why Not the Next Score?" exactly as instructed.
+Do not create a section called "Why?"
 
 Do not create a section called "Language Corrections."
 
 Use exactly "Language Feedback."
 
-Do not create a section called "Additional Comments."
+Do not create an "Additional Comments" section.
 
 Do not add any text before the first section.
 
 Do not add any text after the Better Version.
 
 
-14. SECTION CONTENT
+=========================================================
+PART 16: SECTION CONTENT
+=========================================================
 
 ## Estimated Score: X/5
 
-Give ONE estimated score from 0 to 5.
+Give ONE overall estimated score from 0 to 5.
 
-Do not add a paragraph on the same line as the heading.
-
-The score must be based on the student's actual response.
+Do not add explanatory text on the same line as the score.
 
 
 ## Why Not the Next Score?
 
-Explain briefly why the response did not receive the next higher
-score.
+Give 2-4 concise sentences.
 
-Write 2-4 concise sentences.
+Explain the specific limitations preventing the next score.
 
-For a 5/5 response, write:
-
-"The response demonstrates the characteristics of the highest score
-level. There are no significant limitations that prevent it from
-receiving a 5/5."
-
-For a 4/5 response, explain the specific limitations that prevent a
-5.
-
-For a 3/5 response, explain the specific limitations that prevent a
-4.
-
-For a 2/5 response, explain the specific limitations that prevent a
-3.
-
-For a 1/5 response, explain the specific limitations that prevent a
-2.
-
-The explanation must be consistent with the actual score.
-
-Do not criticize the student for using simple language if the language
-is accurate.
+Do not give generic feedback.
 
 
 ## What You Did Well
 
-Give exactly 2 specific strengths.
+Give EXACTLY 2 specific strengths.
 
 Use bullet points.
 
@@ -788,52 +1033,47 @@ Do not add a third strength.
 
 ## What to Improve
 
-Give exactly 2 specific and actionable suggestions.
+Give EXACTLY 2 specific and actionable suggestions.
 
 Use bullet points.
 
-Focus on the two most important improvements that would help the
-student improve their performance.
+Focus on the two most important improvements for the student's
+performance.
 
-The suggestions should be appropriate for the student's score level.
+For lower scores, prioritize:
 
-Do not tell every student to use "more advanced vocabulary."
+- task completion
+- clarity
+- accuracy
+- basic development
 
-Do not tell every student to use "more complex grammar."
+For mid-level scores, prioritize:
 
-Only recommend these when they are genuinely relevant.
+- language control
+- development
+- organization
 
-For lower-scoring responses, prioritize accuracy, clarity, and
-task completion.
+For higher scores, prioritize:
 
-For mid-level responses, prioritize language control and development.
+- precision
+- fuller development
+- nuanced support
 
-For higher-scoring responses, prioritize precision and fuller
-development only when genuinely needed.
+ONLY recommend more advanced vocabulary or complex grammar when this is
+genuinely necessary.
 
 
 ## Language Feedback
 
 Give a maximum of 6 genuine and useful corrections.
 
-Use this exact general structure:
+Do not invent corrections.
 
-**Original phrase** → **Correction**
+Do not include stylistic alternatives as errors.
 
-Brief explanation: Explain briefly why the change is needed.
+If the original is understandable but awkward, explicitly say so.
 
-Keep explanations concise.
-
-Do not write long paragraphs for each correction.
-
-Do not correct every minor punctuation issue.
-
-Do not include stylistic alternatives as if they were errors.
-
-If the original is understandable but awkward, clearly say that it is
-understandable but awkward or less natural.
-
-If there are no meaningful language problems, write:
+If there are no meaningful problems, write:
 
 "No major language errors."
 
@@ -842,31 +1082,29 @@ If there are no meaningful language problems, write:
 
 Provide a lightly improved version of the student's response.
 
-Keep the response close to the student's original.
+Keep it close to the original.
 
 Correct genuine errors.
 
-Make only necessary improvements to clarity.
-
-Do not substantially rewrite the response.
+Improve clarity where necessary.
 
 Do not introduce new arguments.
 
 Do not introduce new information.
 
+Do not substantially rewrite the response.
+
 Do not make the response significantly more sophisticated than the
 original.
 
-If the original is already strong, make minimal changes.
+The Better Version must be the final content.
 
-Do not add a long explanation after the Better Version.
-
-The Better Version itself should be the final content of the response.
-
-Remember: The purpose of this section is to show the student how their
-own response could be improved, not to replace their response with a
-completely different high-level model answer.
+Do not add an explanation after it.
 """
+
+    # ---------------------------------------------------------
+    # API CALL
+    # ---------------------------------------------------------
 
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
@@ -874,15 +1112,22 @@ completely different high-level model answer.
             {
                 "role": "system",
                 "content": (
-                    "You are a careful and fair TOEFL Writing evaluator. "
-                    "Follow the provided scoring criteria exactly. "
-                    "Evaluate the student's actual response, not an "
-                    "imagined improved version. "
+                    "You are a careful, fair, and highly precise TOEFL "
+                    "Writing evaluator and language teacher. "
+                    "Evaluate the student's actual writing. "
                     "Distinguish genuine language errors from stylistic "
                     "preferences. "
-                    "Score consistently across all score bands. "
-                    "Follow the required Markdown output format exactly. "
-                    "Every ## heading must be on its own line."
+                    "Preserve the student's intended meaning when "
+                    "correcting language. "
+                    "Consider context before making corrections. "
+                    "Do not overcorrect. "
+                    "Do not invent errors or information. "
+                    "Do not add new arguments to the Better Version. "
+                    "Score consistently across score bands. "
+                    "Follow every instruction in the evaluation prompt. "
+                    "Return only the six required sections in the exact "
+                    "Markdown format requested. "
+                    "Every ## heading must appear on its own line."
                 )
             },
             {
@@ -891,7 +1136,7 @@ completely different high-level model answer.
             }
         ],
         temperature=0.1,
-        max_tokens=1800
+        max_tokens=2200
     )
 
     return response.choices[0].message.content
@@ -998,8 +1243,6 @@ if st.button("🔍 Evaluate My Writing", type="primary"):
                 # -------------------------------------------------
                 # FORMAT BOLD TEXT
                 # -------------------------------------------------
-
-                import re
 
                 formatted_evaluation = re.sub(
                     r"\*\*(.*?)\*\*",
