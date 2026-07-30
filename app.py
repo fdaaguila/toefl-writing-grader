@@ -76,9 +76,7 @@ except Exception:
 # TITLE
 # ---------------------------------------------------------
 
-st.title(
-    "📝 TOEFL Writing AI Grader"
-)
+st.title("📝 TOEFL Writing AI Grader")
 
 st.write(
     "Practice your TOEFL Writing skills and receive "
@@ -106,9 +104,7 @@ task_type = st.selectbox(
 # TASK PROMPT
 # ---------------------------------------------------------
 
-st.subheader(
-    "TOEFL Task"
-)
+st.subheader("TOEFL Task")
 
 task_prompt = st.text_area(
     "Paste the TOEFL task or prompt here:",
@@ -120,9 +116,7 @@ task_prompt = st.text_area(
 # STUDENT RESPONSE
 # ---------------------------------------------------------
 
-st.subheader(
-    "Your Response"
-)
+st.subheader("Your Response")
 
 student_response = st.text_area(
     "Paste your TOEFL writing response here:",
@@ -150,8 +144,8 @@ Score 4:
 The response is effective and relevant. It clearly expresses a
 position and contributes meaningfully to the discussion. Ideas are
 adequately developed and supported. There may be some errors or
-limitations in language use, but they generally do not interfere with
-communication.
+limitations in language use, but they generally do not interfere
+with communication.
 
 Score 3:
 The response is generally relevant and understandable but may be
@@ -181,8 +175,8 @@ IMPORTANT:
 
 Do not require formal academic research or citations.
 
-Students do not need to provide statistical evidence or research
-unless the task explicitly asks for it.
+Students do not need statistical evidence or research unless the
+task explicitly asks for it.
 
 Evaluate the quality of the student's explanation and support based
 on what is appropriate for the task.
@@ -190,18 +184,29 @@ on what is appropriate for the task.
 Do not invent additional requirements that are not present in the
 task.
 
-Do not penalize a student simply because they did not discuss a
-specific counterargument, long-term consequence, or alternative
-solution unless that is necessary to fulfill the actual task.
+Do not automatically require:
 
-Do not require "nuanced" arguments for a 5 unless the response
-genuinely needs additional development to fully address the task.
+- counterarguments
+- long-term consequences
+- alternative solutions
+- multiple examples
+- sophisticated analysis
+- formal evidence
+- complex grammar
+- advanced vocabulary
+
+unless these are explicitly required by the task or genuinely
+necessary for adequate development.
 
 A student can receive a 4 or 5 using relatively simple language if
 the language is accurate, clear, effective, and appropriate.
 
-Do not require sophisticated vocabulary or complex grammar merely
-because the response is aiming for a high score.
+Do not penalize a student merely because their argument is simple.
+
+Do not penalize a student merely because they did not discuss every
+possible perspective.
+
+Do not invent weaknesses in order to justify a lower score.
 """
 
 # ---------------------------------------------------------
@@ -214,14 +219,14 @@ Evaluate the response as a TOEFL iBT Writing "Write an Email" task.
 
 Consider:
 
-* Does the writer successfully accomplish the purpose of the email?
-* Does the writer address the required points in the task?
-* Is the message clear and relevant?
-* Are ideas sufficiently developed for the task?
-* Is the organization appropriate for an email?
-* Is the tone appropriate for the intended recipient?
-* Is the language generally accurate and effective?
-* Does the writer use appropriate vocabulary and sentence structures?
+- Does the writer successfully accomplish the purpose of the email?
+- Does the writer address the required points in the task?
+- Is the message clear and relevant?
+- Are ideas sufficiently developed for the task?
+- Is the organization appropriate for an email?
+- Is the tone appropriate for the intended recipient?
+- Is the language generally accurate and effective?
+- Does the writer use appropriate vocabulary and sentence structures?
 
 Give ONE overall estimated score from 0 to 5.
 
@@ -246,11 +251,11 @@ remains clear and effective overall.
 
 Score 3:
 The response generally accomplishes the task and addresses most or
-all of the required points, but development may be limited. Ideas
-may be basic, repetitive, or insufficiently explained. Language
-control is inconsistent, with noticeable grammatical errors,
-incorrect word forms, awkward expressions, or sentence structure
-problems. The main message is generally understandable.
+all of the required points, but development may be limited. Ideas may
+be basic, repetitive, or insufficiently explained. Language control
+is inconsistent, with noticeable grammatical errors, incorrect word
+forms, awkward expressions, or sentence structure problems. The main
+message is generally understandable.
 
 Score 2:
 The response shows limited ability to accomplish the task. One or
@@ -279,17 +284,11 @@ but correct language.
 Do not require sophisticated vocabulary or complex grammar for a high
 score.
 
-A response with several genuine grammatical errors, incorrect verb
-forms, subject-verb agreement errors, incorrect prepositions,
-incorrect word forms, or unclear expressions should be evaluated
-accordingly.
-
-At the same time, do not treat correct but simple language as an
-error.
+Do not invent weaknesses in order to justify a lower score.
 """
 
 # ---------------------------------------------------------
-# STEP 1: EVALUATION
+# STEP 1: EVALUATE WRITING
 # ---------------------------------------------------------
 
 def evaluate_writing(
@@ -306,36 +305,48 @@ def evaluate_writing(
     evaluation_prompt = f"""
 You are an experienced TOEFL Writing teacher and evaluator.
 
-Your job is to evaluate a student's response accurately, fairly,
-conservatively, and consistently.
+Evaluate the student's response accurately, fairly, conservatively,
+and consistently.
 
-TASK TYPE:
+=========================================================
+TASK TYPE
+=========================================================
+
 {task_type}
 
-TASK PROMPT:
+=========================================================
+TASK PROMPT
+=========================================================
+
 {task_prompt}
 
-STUDENT RESPONSE:
+=========================================================
+STUDENT RESPONSE
+=========================================================
+
 {student_response}
 
-SCORING GUIDELINES:
+=========================================================
+SCORING GUIDELINES
+=========================================================
+
 {rubric}
 
 =========================================================
 CORE EVALUATION PRINCIPLES
 =========================================================
 
-1. SCORE THE STUDENT'S ACTUAL WRITING
+1. SCORE THE ACTUAL STUDENT RESPONSE
 
-Evaluate the response exactly as written.
+Evaluate exactly what the student wrote.
 
 Do not score a hypothetical improved version.
 
 Do not assume what the student intended if the actual writing does
 not communicate it.
 
-Do not mentally correct the student's writing before assigning
-the score.
+Do not mentally correct the student's writing before assigning the
+score.
 
 =========================================================
 2. DO NOT INVENT TASK REQUIREMENTS
@@ -348,195 +359,302 @@ prompt does not require.
 
 Do not automatically require:
 
-* counterarguments
-* long-term consequences
-* additional perspectives
-* alternative solutions
-* statistical evidence
-* formal research
-* sophisticated analysis
-* multiple examples
+- counterarguments
+- long-term consequences
+- alternative solutions
+- statistical evidence
+- formal research
+- multiple examples
+- sophisticated analysis
+- nuanced arguments
 
-unless these are explicitly required by the task or genuinely needed
-to adequately develop the student's own response.
+unless these are explicitly required by the task or genuinely
+necessary to adequately develop the student's response.
 
 For Academic Discussion, students should express and support an
 opinion and contribute to the discussion.
 
 They do not need to address every possible argument.
 
-They do not need to provide formal evidence.
+They do not need formal academic evidence.
 
 Do not invent a new standard for a score of 5.
 
 =========================================================
-3. DISTINGUISH ERRORS FROM STYLE
+3. DISTINGUISH TASK DEVELOPMENT FROM LANGUAGE ACCURACY
 =========================================================
 
-This is extremely important.
+Do not confuse a simple idea with a language error.
 
-Do NOT identify a sentence as an error simply because you would
-personally express it differently.
+A student may have a simple argument and still use accurate English.
 
-Do NOT change correct language merely to make it:
+Do not lower the score simply because the student does not use
+sophisticated vocabulary.
 
-* more formal
-* more academic
-* more sophisticated
-* more concise
-* more precise
-* more natural
-* more native-like
-
-If the student's wording is grammatically correct and understandable,
-KEEP IT.
-
-Examples of acceptable language that should NOT automatically
-be changed:
-
-"I think..."
-
-"I believe..."
-
-"I agree with Marcus's argument when he says..."
-
-"bikes"
-
-"help"
-
-"good"
-
-Simple language is not automatically incorrect.
+Do not lower the score simply because the student uses simple
+grammar if that grammar is accurate and effective.
 
 =========================================================
-4. ONLY IDENTIFY GENUINE LANGUAGE PROBLEMS
+4. LANGUAGE FEEDBACK MUST IDENTIFY ONLY REAL ERRORS
 =========================================================
 
-Language Feedback should focus only on genuine problems such as:
+This is the most important instruction.
 
-* grammar errors
-* subject-verb agreement
-* incorrect verb forms
-* incorrect word forms
-* incorrect prepositions
-* incorrect articles when they affect accuracy
-* incorrect sentence structures
-* incorrect word order
-* genuinely unclear wording
-* genuinely incorrect vocabulary
-* language that is inappropriate for the context
+A language correction is allowed ONLY if the original contains a
+genuine language problem.
 
-Do not identify a correct sentence as an error simply because another
-version sounds better.
+A genuine problem includes:
+
+- incorrect grammar
+- incorrect subject-verb agreement
+- incorrect verb form
+- incorrect word form
+- incorrect preposition
+- incorrect article when it affects accuracy
+- incorrect sentence structure
+- incorrect word order
+- genuinely incorrect vocabulary
+- wording that is genuinely unclear or unintelligible
+
+Do NOT correct something merely because:
+
+- another expression sounds more natural
+- another expression is more academic
+- another expression is more formal
+- another expression is more sophisticated
+- another expression is more precise
+- you personally prefer another expression
+- the claim is broad
+- the claim is debatable
+- the claim is subjective
+- the claim may not be universally true
 
 =========================================================
-5. DO NOT CORRECT THE STUDENT'S IDEAS
+5. DO NOT CHANGE MEANING
 =========================================================
 
-The evaluator evaluates language and task performance.
-
-Do not rewrite the student's opinions or claims because they are:
-
-* debatable
-* broad
-* subjective
-* overly general
-* factually questionable
-* not your preferred interpretation
+NEVER change the student's meaning in Language Feedback.
 
 For example:
 
 "bikes can't be used in winter"
 
-This may be a broad claim, but it is grammatically understandable.
+may be a broad claim, but it is grammatically understandable.
 
-Do not automatically change it to:
+This is NOT a language error.
+
+DO NOT change it to:
 
 "bikes can be difficult or dangerous to use in winter."
 
 That changes the meaning and strength of the student's claim.
 
-If the student's claim is relevant to the discussion, evaluate the
-quality of the idea separately from the grammatical correctness of
-the sentence.
+The student may intentionally be making a strong claim.
+
+Do not weaken or qualify the student's opinion.
+
+Similarly, do not change:
+
+"bikes"
+
+to:
+
+"bicycles"
+
+unless "bikes" is genuinely incorrect.
+
+Do not change:
+
+"think"
+
+to:
+
+"believe"
+
+unless "think" is genuinely incorrect.
+
+Do not change:
+
+"says"
+
+to:
+
+"argues"
+
+unless "says" is genuinely incorrect.
+
+Do not change:
+
+"help"
+
+to:
+
+"assist"
+
+unless "help" is genuinely incorrect.
+
+Simple and common language is acceptable.
 
 =========================================================
-6. SCORE CONSISTENTLY
+6. THREE-WAY LANGUAGE CLASSIFICATION
 =========================================================
 
-Consider the overall combination of:
+For every possible language issue you consider, classify it internally
+as exactly one of the following:
 
-* task fulfillment
-* relevance
-* development
-* organization
-* language control
-* clarity
-* appropriateness of tone
+REAL_ERROR
 
-Do not give a 4 or 5 simply because the student addresses every
-requirement.
+The original contains a genuine language error that should be
+corrected.
 
-Do not give a 3 simply because the ideas are simple.
+NO_ERROR
 
-Do not require advanced vocabulary or complex grammar for a high
-score.
+The original is correct and should remain unchanged.
 
-The score must reflect the actual quality of the response.
+STYLE_ONLY
+
+The original may be less natural, less formal, less sophisticated,
+or stylistically improvable, but it is not a genuine error.
+
+ONLY REAL_ERROR ITEMS MAY APPEAR IN LANGUAGE FEEDBACK.
+
+Do NOT include NO_ERROR items.
+
+Do NOT include STYLE_ONLY items.
+
+Do NOT write:
+
+"Phrase → No correction needed."
+
+Do not include correct phrases in Language Feedback.
 
 =========================================================
-7. LANGUAGE FEEDBACK
+7. EXAMPLES OF WHAT NOT TO CORRECT
 =========================================================
 
-Give a maximum of 6 genuine and useful corrections.
+Do NOT correct:
+
+"I think that investing in buses and trains should be a priority."
+
+Do NOT change it to:
+
+"I believe that investing in buses and trains should be a priority."
+
+Reason:
+"I think" is correct.
+
+Do NOT correct:
+
+"I agree with Marcus's argument when he says..."
+
+Do NOT change it to:
+
+"I agree with Marcus's argument that..."
+
+Reason:
+The original structure is grammatically acceptable.
+
+Do NOT correct:
+
+"bikes can't be used in winter"
+
+to:
+
+"bikes can be difficult or dangerous to use in winter."
+
+Reason:
+This changes meaning.
+
+Do NOT correct:
+
+"bikes"
+
+to:
+
+"bicycles"
+
+Reason:
+"Bikes" is correct.
+
+Do NOT correct:
+
+"help"
+
+to:
+
+"assist"
+
+Reason:
+"Help" is correct.
+
+=========================================================
+8. MAXIMUM LANGUAGE CORRECTIONS
+=========================================================
+
+Give a maximum of 6 REAL_ERROR corrections.
 
 Prioritize the most important errors.
 
-If there are fewer than 6 genuine problems, give fewer corrections.
+If there are only 2 genuine errors, give only 2 corrections.
 
-Do not invent corrections to reach 6.
-
-If there are no meaningful language problems, write:
+If there are no genuine errors, write exactly:
 
 No major language errors.
 
-Use this format:
+Never invent errors to reach 6.
+
+=========================================================
+9. CORRECTION FORMAT
+=========================================================
+
+For every REAL_ERROR, use exactly:
 
 **Original phrase** → **Correction**
 
 Brief explanation: [short explanation]
 
-IMPORTANT:
+The correction must preserve the student's original meaning.
 
-Only include a correction if the original contains a genuine language
-problem.
+Do not change the strength of the student's claim.
 
-Do not include optional stylistic improvements as corrections.
+Do not add information.
 
-If the original is understandable but awkward, clearly state that it
-is understandable but awkward rather than calling it a grammar error.
+Do not remove information.
 
 =========================================================
-8. BETTER VERSION PREPARATION
+10. BETTER VERSION
 =========================================================
 
-The Better Version will be created in a separate second editing step.
+Do NOT create a Better Version in this step.
 
-Therefore, DO NOT create or write the Better Version now.
-
-Instead, identify only the genuine corrections that should be applied
-to the student's writing.
-
-The next editing step will use ONLY these approved corrections.
-
-This is critical.
-
-Do not suggest corrections that are merely stylistic.
-
-Do not suggest changing the student's ideas.
+The Better Version will be created separately using ONLY the approved
+REAL_ERROR corrections.
 
 =========================================================
-9. REQUIRED OUTPUT
+11. SCORE CONSISTENCY
+=========================================================
+
+Consider:
+
+- task fulfillment
+- relevance
+- development
+- organization
+- language control
+- clarity
+- appropriateness of tone
+
+Do not automatically give a 4 or 5 because all task requirements
+are addressed.
+
+Do not automatically give a 3 because ideas are simple.
+
+Do not invent weaknesses.
+
+Do not require advanced vocabulary or complex grammar for a high score.
+
+=========================================================
+12. REQUIRED OUTPUT
 =========================================================
 
 Return ONLY these five sections:
@@ -553,10 +671,11 @@ Return ONLY these five sections:
 
 Do not include:
 
-* Better Version
-* additional comments
-* model answers
-* alternative rewrites
+- Better Version
+- additional comments
+- model answers
+- alternative rewrites
+- corrections that are not REAL_ERROR items
 
 =========================================================
 SECTION REQUIREMENTS
@@ -566,19 +685,29 @@ SECTION REQUIREMENTS
 
 Give ONE estimated score from 0 to 5.
 
+=========================================================
+
 ## Why Not the Next Score?
 
-Explain briefly why the response did not receive the next higher
-score.
+Explain briefly why the response did not receive the next higher score.
 
 Write 2-4 concise sentences.
 
 The explanation must be consistent with the actual score.
 
-Do not invent weaknesses that are not present.
+Do not invent weaknesses.
 
-Do not criticize the student for using simple language if it is
-accurate.
+Do not automatically mention:
+
+- sophisticated vocabulary
+- complex grammar
+- nuanced arguments
+- counterarguments
+- long-term consequences
+
+unless they are genuinely relevant to the actual response and task.
+
+=========================================================
 
 ## What You Did Well
 
@@ -590,23 +719,29 @@ Base both strengths on the student's actual response.
 
 Do not give generic praise.
 
+=========================================================
+
 ## What to Improve
 
 Give exactly 2 specific and actionable suggestions.
 
 Use bullet points.
 
-Focus on the two most important improvements that would help the
-student improve.
+Focus on the two most important improvements.
 
-The suggestions must be appropriate for the student's actual score.
+Do not automatically recommend advanced vocabulary.
 
-Do not automatically tell every student to use more advanced
-vocabulary or complex grammar.
+Do not automatically recommend complex grammar.
+
+Do not invent missing weaknesses.
+
+=========================================================
 
 ## Language Feedback
 
-Give a maximum of 6 genuine corrections.
+Include ONLY genuine REAL_ERROR corrections.
+
+Maximum 6.
 
 Use:
 
@@ -614,11 +749,18 @@ Use:
 
 Brief explanation: [short explanation]
 
-If there are no meaningful language problems, write:
+If there are no genuine language errors, write exactly:
 
 No major language errors.
 
-Do not create a Better Version in this step.
+Do not include:
+
+- correct phrases
+- stylistic alternatives
+- optional improvements
+- meaning changes
+- factual corrections
+- broad claims that are grammatically correct
 """
 
     response = client.chat.completions.create(
@@ -627,18 +769,19 @@ Do not create a Better Version in this step.
             {
                 "role": "system",
                 "content": (
-                    "You are a careful, fair, and conservative TOEFL "
+                    "You are a careful, fair, conservative TOEFL "
                     "Writing evaluator. "
                     "Evaluate the student's actual writing. "
-                    "Distinguish genuine language errors from stylistic "
-                    "preferences. "
+                    "Never change the student's meaning. "
+                    "Never weaken or qualify the student's claims. "
+                    "Distinguish REAL_ERROR from STYLE_ONLY and NO_ERROR. "
+                    "Only genuine language errors may appear in Language "
+                    "Feedback. "
+                    "Do not include correct phrases as corrections. "
                     "Do not invent task requirements. "
                     "Do not require sophisticated vocabulary or complex "
                     "grammar for high scores. "
-                    "Do not correct the student's opinions or claims. "
-                    "Identify only genuine language problems. "
-                    "Do not create a Better Version. "
-                    "Follow the required output format exactly."
+                    "Do not create a Better Version."
                 )
             },
             {
@@ -646,49 +789,138 @@ Do not create a Better Version in this step.
                 "content": evaluation_prompt
             }
         ],
-        temperature=0.05,
+        temperature=0.0,
         max_tokens=1800
     )
 
-    return response.choices[0].message.content
+    return response.choices[0].message.content.strip()
 
 
 # ---------------------------------------------------------
-# STEP 2: STRICT MINIMAL-DIFF EDITOR
+# STEP 2: EXTRACT ONLY APPROVED CORRECTIONS
+# ---------------------------------------------------------
+
+def extract_corrections(language_feedback):
+
+    if not language_feedback:
+        return []
+
+    if "No major language errors." in language_feedback:
+        return []
+
+    corrections = []
+
+    lines = language_feedback.splitlines()
+
+    for i, line in enumerate(lines):
+
+        if "→" not in line:
+            continue
+
+        clean_line = re.sub(
+            r"\*\*",
+            "",
+            line
+        ).strip()
+
+        parts = clean_line.split("→", 1)
+
+        if len(parts) != 2:
+            continue
+
+        original = parts[0].strip()
+        correction = parts[1].strip()
+
+        if not original or not correction:
+            continue
+
+        # Remove accidental labels
+        original = re.sub(
+            r"^(Original phrase:|Original:)\s*",
+            "",
+            original,
+            flags=re.IGNORECASE
+        ).strip()
+
+        correction = re.sub(
+            r"^(Correction:)\s*",
+            "",
+            correction,
+            flags=re.IGNORECASE
+        ).strip()
+
+        # Ignore explicit "no correction" entries
+        if correction.lower() in [
+            "no correction needed",
+            "no change needed",
+            "no correction",
+            "keep as is"
+        ]:
+            continue
+
+        corrections.append(
+            {
+                "original": original,
+                "correction": correction
+            }
+        )
+
+    return corrections[:6]
+
+
+# ---------------------------------------------------------
+# STEP 3: STRICT MINIMAL-DIFF EDITOR
 # ---------------------------------------------------------
 
 def create_better_version(
     student_response,
-    language_feedback
+    corrections
 ):
 
+    if not corrections:
+        return student_response
+
+    correction_list = ""
+
+    for index, item in enumerate(corrections, start=1):
+
+        correction_list += (
+            f"\nCORRECTION {index}:\n"
+            f'Original exact phrase: "{item["original"]}"\n'
+            f'Approved replacement: "{item["correction"]}"\n'
+        )
+
     editing_prompt = f"""
-You are a STRICT MINIMAL-DIFF English editor.
+You are a STRICT MINIMAL-DIFF editor.
 
-Your task is to correct the student's original response using ONLY
-the genuine language corrections identified in the Language Feedback.
+Your ONLY task is to apply the explicitly approved language
+corrections to the student's original response.
 
-You are NOT rewriting the response.
+You are NOT evaluating the writing.
 
-You are NOT improving the response.
+You are NOT improving the writing.
+
+You are NOT rewriting the writing.
 
 You are NOT making the student sound more academic.
 
 You are NOT making the student sound more sophisticated.
 
-You are performing a MINIMAL-DIFF EDIT.
+You are NOT adding information.
+
+You are ONLY applying the approved corrections.
 
 =========================================================
-STUDENT'S ORIGINAL RESPONSE
+STUDENT ORIGINAL RESPONSE
 =========================================================
 
 {student_response}
 
 =========================================================
-APPROVED LANGUAGE FEEDBACK
+APPROVED CORRECTIONS
 =========================================================
 
-{language_feedback}
+{correction_list}
 
 =========================================================
 ABSOLUTE RULES
@@ -696,197 +928,142 @@ ABSOLUTE RULES
 
 RULE 1:
 
-Start with the student's original response.
+The student's original response is the source of truth.
 
-The default action is to COPY the student's original response.
+Start with the original response.
 
 RULE 2:
 
-Change ONLY genuine language errors identified in the Language
-Feedback.
+Apply ONLY the approved corrections listed above.
 
-Do not make any additional changes.
+No other changes are allowed.
 
 RULE 3:
 
-Every substantive change in the Better Version must correspond to a
-correction explicitly identified in the Language Feedback.
+Every change in your output must correspond directly to one of the
+approved corrections.
 
 RULE 4:
 
-Do NOT add new:
+Do NOT add:
 
-* ideas
-* arguments
-* examples
-* explanations
-* evidence
-* claims
-* transitions
-* conclusions
-* supporting details
-* information
+- ideas
+- arguments
+- examples
+- explanations
+- evidence
+- supporting details
+- conclusions
+- transitions
+- sentences
 
 RULE 5:
 
-Do NOT replace correct words with synonyms.
-
-For example, do not change:
-
-"think" → "believe"
-
-"bikes" → "bicycles"
-
-"says" → "argues"
-
-"help" → "assist"
-
-"good" → "beneficial"
-
-unless the original word is genuinely incorrect in context.
+Do NOT remove any information.
 
 RULE 6:
 
-Do NOT change correct grammar.
-
-For example:
-
-"I agree with Marcus's argument when he says..."
-
-is acceptable.
-
-Do not change it to:
-
-"I agree with Marcus's argument that..."
+Do NOT change the student's meaning.
 
 RULE 7:
 
-Do NOT change the student's meaning.
+Do NOT weaken or strengthen the student's claims.
 
-Do not change:
-
-* the strength of a claim
-* the certainty of a claim
-* the scope of a claim
-* the student's opinion
-* the student's argument
-
-RULE 8:
-
-Do NOT correct factual claims or opinions.
-
-For example:
+For example, do NOT change:
 
 "bikes can't be used in winter"
 
-may be a broad claim, but do not rewrite it as:
+to:
 
 "bikes can be difficult or dangerous to use in winter."
 
-That changes the meaning.
+That is forbidden because it changes meaning.
+
+RULE 8:
+
+Do NOT replace correct words with synonyms.
+
+Do NOT change:
+
+"think" to "believe"
+
+"bikes" to "bicycles"
+
+"says" to "argues"
+
+"help" to "assist"
+
+unless that exact change appears in the approved corrections.
 
 RULE 9:
 
-Do not add phrases such as:
+Do NOT change correct grammar.
 
-"beyond the cost"
+RULE 10:
+
+Do NOT add transitions such as:
 
 "however"
 
-"for this reason"
+"therefore"
 
 "in addition"
 
 "as a result"
 
-"this demonstrates that"
+"for this reason"
 
-unless those exact words are already in the student's original
-response.
-
-Do not add transitions.
-
-RULE 10:
-
-Do not combine or restructure sentences unless this is strictly
-necessary to correct a genuine grammatical error.
+unless they already appear in the student's original response or are
+explicitly included in an approved correction.
 
 RULE 11:
 
-If the Language Feedback says that a phrase is merely awkward but
-understandable, do NOT automatically rewrite it.
+Do NOT restructure sentences.
 
-Only change it if the correction is clearly identified as necessary.
+Only replace the exact approved phrase with its approved replacement.
 
 RULE 12:
 
-If the Language Feedback says:
-
-"No major language errors."
-
-Return the student's original response EXACTLY as written.
+Do NOT make punctuation changes unless punctuation is included in an
+approved correction.
 
 RULE 13:
 
-If there are only two genuine corrections, make only those two
-corrections.
+If an approved correction cannot be found exactly in the original,
+do NOT invent a replacement.
 
-Do not search for additional ways to improve the response.
+Leave that part unchanged.
 
 RULE 14:
 
-Punctuation may be corrected when necessary for grammatical
-correctness.
-
-Do not make unnecessary stylistic punctuation changes.
+If there are no approved corrections, return the student's original
+response exactly as written.
 
 =========================================================
-FINAL VERIFICATION
+FINAL CHECK
 =========================================================
 
-Before returning the Better Version, compare it with the student's
-original response.
+Before returning the response, compare it with the original.
 
-Ask:
+Every difference must be explained by one of the approved corrections.
 
-1. Did I add any new information?
-
-2. Did I add any new argument?
-
-3. Did I add any new example?
-
-4. Did I add any new transition?
-
-5. Did I replace a correct word with a synonym?
-
-6. Did I change the student's meaning?
-
-7. Did I change a sentence that was already grammatically correct?
-
-8. Did I make a change that was NOT explicitly identified in the
-Language Feedback?
-
-If the answer to any of these questions is YES, undo that change.
-
-The Better Version should look almost identical to the original.
-
-MINIMAL EDITING IS ALWAYS PREFERRED.
+If you made any other change, undo it.
 
 =========================================================
 OUTPUT
 =========================================================
 
-Return ONLY the corrected version of the student's response.
+Return ONLY the corrected student response.
 
 Do not include:
 
-* a heading
-* an explanation
-* comments
-* bullet points
-* quotation marks
-* "Better Version"
-* introductory text
+- headings
+- explanations
+- comments
+- quotation marks
+- bullet points
+- "Better Version"
+- introductory text
 """
 
     response = client.chat.completions.create(
@@ -896,18 +1073,16 @@ Do not include:
                 "role": "system",
                 "content": (
                     "You are a strict minimal-diff editor. "
-                    "Copy the student's original response and make "
-                    "only the explicitly approved genuine language "
-                    "corrections. "
+                    "Apply only the explicitly approved corrections. "
                     "Do not rewrite. "
                     "Do not add information. "
                     "Do not add arguments. "
                     "Do not add examples. "
                     "Do not add transitions. "
+                    "Do not change meaning. "
                     "Do not replace correct words with synonyms. "
-                    "Do not change the student's meaning. "
-                    "Every substantive change must correspond to an "
-                    "approved correction. "
+                    "Every change must correspond to an approved "
+                    "correction. "
                     "Return only the corrected response."
                 )
             },
@@ -924,6 +1099,44 @@ Do not include:
 
 
 # ---------------------------------------------------------
+# STEP 4: SAFETY CHECK
+# ---------------------------------------------------------
+
+def verify_minimal_edit(
+    original,
+    edited,
+    corrections
+):
+
+    if not corrections:
+        return original
+
+    # If the AI accidentally returns formatting or commentary,
+    # remove common unwanted elements.
+    edited = edited.strip()
+
+    edited = re.sub(
+        r"^Better Version:\s*",
+        "",
+        edited,
+        flags=re.IGNORECASE
+    )
+
+    edited = re.sub(
+        r"^##\s*Better Version\s*",
+        "",
+        edited,
+        flags=re.IGNORECASE
+    )
+
+    # If the edited version is empty, use original.
+    if not edited:
+        return original
+
+    return edited.strip()
+
+
+# ---------------------------------------------------------
 # FORMAT EVALUATION FOR DISPLAY
 # ---------------------------------------------------------
 
@@ -932,14 +1145,13 @@ def format_evaluation(
     better_version
 ):
 
-    # Remove any accidental Better Version section
+    # Remove accidental Better Version section
     evaluation = re.split(
         r"##\s*Better Version",
         evaluation,
         flags=re.IGNORECASE
     )[0].strip()
 
-    # Convert headings
     lines = evaluation.split("\n")
 
     processed_lines = []
@@ -1043,6 +1255,7 @@ def format_evaluation(
     )
 
     # Remove breaks around headings
+
     formatted_evaluation = re.sub(
         r"<br>\s*(<h2>)",
         r"\1",
@@ -1056,6 +1269,7 @@ def format_evaluation(
     )
 
     # Remove breaks around lists
+
     formatted_evaluation = re.sub(
         r"<br>\s*<ul>",
         "<ul>",
@@ -1069,16 +1283,15 @@ def format_evaluation(
     )
 
     # -----------------------------------------------------
-    # ADD BETTER VERSION
+    # BETTER VERSION
     # -----------------------------------------------------
 
-    better_version_html = f"""
-    <h2>Better Version</h2>
-
-    <div class="better-version">
-    {better_version.replace(chr(10), "<br>")}
-    </div>
-    """
+    better_version_html = (
+        "<h2>Better Version</h2>"
+        "<div class='better-version'>"
+        + better_version.replace("\n", "<br>")
+        + "</div>"
+    )
 
     formatted_evaluation = (
         formatted_evaluation
@@ -1119,7 +1332,7 @@ if st.button(
 
                 # -------------------------------------------------
                 # STEP 1
-                # EVALUATE AND IDENTIFY GENUINE ERRORS
+                # EVALUATE RESPONSE
                 # -------------------------------------------------
 
                 evaluation = evaluate_writing(
@@ -1129,6 +1342,7 @@ if st.button(
                 )
 
                 # -------------------------------------------------
+                # STEP 2
                 # EXTRACT LANGUAGE FEEDBACK
                 # -------------------------------------------------
 
@@ -1153,22 +1367,51 @@ if st.button(
                     )
 
                 # -------------------------------------------------
-                # STEP 2
-                # CREATE STRICT MINIMAL-DIFF VERSION
+                # STEP 3
+                # EXTRACT ONLY APPROVED CORRECTIONS
                 # -------------------------------------------------
 
-                better_version = create_better_version(
-                    student_response,
-                    language_feedback
+                approved_corrections = (
+                    extract_corrections(
+                        language_feedback
+                    )
                 )
 
                 # -------------------------------------------------
+                # STEP 4
+                # CREATE MINIMAL-DIFF VERSION
+                # -------------------------------------------------
+
+                better_version = (
+                    create_better_version(
+                        student_response,
+                        approved_corrections
+                    )
+                )
+
+                # -------------------------------------------------
+                # STEP 5
+                # FINAL SAFETY CHECK
+                # -------------------------------------------------
+
+                better_version = (
+                    verify_minimal_edit(
+                        student_response,
+                        better_version,
+                        approved_corrections
+                    )
+                )
+
+                # -------------------------------------------------
+                # STEP 6
                 # FORMAT EVERYTHING
                 # -------------------------------------------------
 
-                formatted_evaluation = format_evaluation(
-                    evaluation,
-                    better_version
+                formatted_evaluation = (
+                    format_evaluation(
+                        evaluation,
+                        better_version
+                    )
                 )
 
                 # -------------------------------------------------
